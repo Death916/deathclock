@@ -1,36 +1,43 @@
 #deathclock
-import datetime
 import time
-
-def main():
-
-    class clock():
-
-        def time_and_date():
-            print(time.asctime())
-        
-        def alarm():
-            alarm_time =  input("what time should the alarm be set?")
+import dearpygui.dearpygui as dpg
 
 
-            def ring():
-                pass
+class clock():
 
+    def time_and_date(self):
+        print(time.asctime())
 
-            
+    def alarm(self):
+        alarm_time = None
 
-
-
-    class weather():
-        def map():
-
-            return
-
-        def cur_weather(): 
-
+        def ring():
             pass
 
-    class gui():
+
+class weather():
+    def map(self):
+        return
+
+    def cur_weather(self):
         pass
+
+
+class gui():
+    def show_time(self):
+
+        with dpg.window(label="time"):
+            dpg.add_text(time.asctime())
+            dpg.start_dearpygui()
+
+
+def main():
+    gui1 = gui()
+    gui1.show_time()
+
+
+    
+if __name__ == "__main__":
+    main()
 
 
