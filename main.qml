@@ -80,8 +80,8 @@ ApplicationWindow {
 
             Image {
                 anchors.fill: parent
-                source: "https://weather.com/weather/radar/interactive/l/458d58193d53af8f2c66d80539989f3acde8455d72b09aaac1ba404dbd35227537bec73d6a4d1261b1978b774d987f45"
-            fillMode: Image.PreserveAspectCrop
+                source: "/home/death916/code/python/deathclock/sacramento_weather_map.png"
+            fillMode: Image.fill
             }
 
             // Additional weather content can be added here
