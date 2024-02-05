@@ -5,10 +5,11 @@ description = ""
 authors = ["Death916 <tavn1992@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = ">3.11,<3.13"
+python =  ">=3.8,<3.11.4"
 pyside6 = "^6.6.1"
 requests = "^2.31.0"
 selenium = "^4.16.0"
+feedparser = "^6.0.11"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

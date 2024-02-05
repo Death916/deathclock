@@ -9,7 +9,7 @@ ApplicationWindow {
     title: "Clockz"
     property string currTime: "00:00:00"
     property string onTouchPressed: "Left area not pressed"
-
+    
     Rectangle {
         anchors.fill: parent
 
@@ -21,6 +21,7 @@ ApplicationWindow {
 
         // Left touch area
         MouseArea {
+            id : scoreArea
             anchors.left: parent.left
             width: 70
             height: parent.height // Full height
@@ -47,7 +48,7 @@ ApplicationWindow {
         Rectangle {
             anchors.left: parent.left
             width: 70
-            height: parent.height
+            height: parent.height - newsArea.height // Full height
             color: Qt.rgba(0, 0, 1, 0.3) // Slightly opaque blue
         }
 
@@ -80,8 +81,8 @@ ApplicationWindow {
 
             Image {
                 anchors.fill: parent
-                source: "/home/death916/code/python/deathclock/sacramento_weather_map.png"
-            fillMode: Image.fill
+                source: imageProvider.source
+            //fillMode: Image.fill            // Fill the entire area // Uncomment this line to fill the entire area
             }
 
             // Additional weather content can be added here
@@ -102,6 +103,62 @@ ApplicationWindow {
                 font.pixelSize: 20
                 color: "black"
                 horizontalAlignment: Text.AlignHCenter
+            }
+        }
+
+        //bottom news scroll area
+        Rectangle {
+            id: newsArea
+            width: parent.width
+            height: parent.height * 1 / 6
+            color: Qt.rgba(0, 0, 1, 0.5) // Semi-transparent blue
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+
+            // Text "News" at the top
+            Text {
+                id: newsHeader
+                anchors.top: parent.top
+                width: parent.width
+                height: 30
+                text: "News"
+                font.pixelSize: 20
+                color: "white"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            Text {
+                
+                id: newsText
+                text: news
+                font.pixelSize: 15
+                color: "white"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                x: parent.width
+                anchors.top: newsHeader.bottom
+
+                SequentialAnimation on x {
+                    loops: Animation.Infinite
+                    running: true
+
+                    PropertyAnimation {
+                        from: parent.width
+                        to: -newsText.width
+                        duration: 2000000 // 10 seconds (in milliseconds)
+                    }
+                }
+            }
+
+            Timer {
+                id: newsTimer
+                interval: 600005// 10 minutes
+                running: true
+                repeat: true
+                onTriggered: {
+                    newsText.text = news // Update the news text
+                }
             }
         }
 
