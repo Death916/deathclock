@@ -11,6 +11,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 import os
 import news
+import weather
+
 
 
 class clock():
@@ -34,60 +36,6 @@ class clock():
             pass
 
 
-class weather():
-    
-    def __init__(self, image_provider):
-        self.image_provider = image_provider
-        #save radar map from google weather
-    
-    def download_sacramento_weather_map(self):
-        url = "https://www.google.com/search?q=weather&hl=en-GB"
-        service = Service(executable_path='/home/death916/code/python/deathclock/deathclock/chromedriver')
-        options = webdriver.ChromeOptions()
-        #options.add_argument('--headless')
-        driver = webdriver.Chrome(service=service, options=options)
-        options.add_argument('--force-dark-mode')
-        driver.get(url)
-        map_element = driver.find_element('id', 'wob_wc')
-        image = map_element.screenshot('sacramento_weather_map.png')
-        print("screen shot taken")
-        self.image_provider.source = 'sacramento_weather_map.png'
-        
-        driver.quit()
-        return image
-
-        def cur_weather():
-            # scrape weather from web
-            
-
-            pass
-    def delete_old_screen_shot(self):
-         # delete old screen shot from downloads weather map
-        file = '/home/death916/code/python/deathclock/sacramento_weather_map.png'
-        os.remove(file)
-        print("old screen shot deleted")
-
-
-class WeatherImageProvider(QObject):
-    """weather image provider class to provide image to qml when timer is up"""
-    sourceChanged = Signal()
-    
-
-    def __init__(self):
-        super().__init__()
-        self._source = ""
-
-    @Property(str, notify=sourceChanged)
-    def source(self):
-        return self._source
-
-    @source.setter
-    def source(self, value):
-        if self._source != value:
-            self._source = value
-            self.sourceChanged.emit()       
-
-                                
 """
 class gui():
      def handleTouchAreaPressed(self, signal):
@@ -106,36 +54,34 @@ def main():
     engine.quit.connect(app.quit)
     
     engine.load( 'main.qml')
-    # create instance of  weather image provider
-    image_provider = WeatherImageProvider()
-
-    # set context property for weather image provider
-    context = engine.rootContext()
-    context.setContextProperty("imageProvider", image_provider)
-
     # create instance of weather class
-    weather_obj = weather(image_provider)
-    weather_obj.download_sacramento_weather_map()
+    weather_obj = weather.Weather()
+    weather_obj.download_sacramento_weather_map(engine)
 
+    # set timer for weather map
+    weatherTimer = QTimer()
+    weatherTimer.setInterval(600000) # 10 minutes 
+    weatherTimer.timeout.connect(weather_obj.download_sacramento_weather_map(engine))
+    weatherTimer.start()
+    
+   
     # create instance of clock class
     timeupdate = clock()
+    
+    # start timer for clock
     timer = QTimer()
-    weatherTimer = QTimer()
-    weatherTimer.start()
-    # set timer for weather map
-    weatherTimer.setInterval(600000) # 10 minutes 
-    weatherTimer.timeout.connect(weather_obj.download_sacramento_weather_map)
     timer.setInterval(100)  # msecs 100 = 1/10th sec
     timer.timeout.connect(timeupdate.update_time)
-    weather_obj.delete_old_screen_shot()
-
     timer.start()
+    
+    # create instance of news class
     news_obj = news.news()
     news_ticker = news_obj.get_news()
     #print(news_obj._news_dict)
     print(news_ticker)
     news_context = engine.rootContext()
     news_context.setContextProperty("news", str(news_ticker))
+
     #start timer for news
     news_timer = QTimer()
     news_timer.timeout.connect(news_obj.get_news)

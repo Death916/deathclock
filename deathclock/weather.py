@@ -4,12 +4,18 @@ from PySide6.QtCore import QObject, Signal, Property
 import os
 from PySide6.QtQuick import QQuickImageProvider
 from PySide6.QtGui import QImage, QPixmap
+from PySide6.QtQml import QQmlApplicationEngine
 
-class weather():
+
+class Weather(QObject):
     
+    def __init__(self):
+        
+        super().__init__()
+        
    
     
-    def download_sacramento_weather_map(self):
+    def download_sacramento_weather_map(self, engine):
         url = "https://www.google.com/search?q=weather&hl=en-GB"
         service = Service(executable_path='/home/death916/code/python/deathclock/deathclock/chromedriver')
         options = webdriver.ChromeOptions()
@@ -18,13 +24,17 @@ class weather():
         options.add_argument('--force-dark-mode')
         driver.get(url)
         map_element = driver.find_element('id', 'wob_wc')
-        image = map_element.screenshot('sacramento_weather_map.png')
+        screenshot_path = 'sacramento_weather_map.png'
+        map_element.screenshot(screenshot_path)
         print("screen shot taken")
-        self.image_provider.source = 'sacramento_weather_map.png'
-        
+        weather_context = engine.rootContext()
+       
+        image = screenshot_path
+        weather_context = engine.rootContext()
+        weather_context.setContextProperty("weatherImage", image)
         driver.quit()
-        return image
-
+        return screenshot_path
+    
         def cur_weather():
             # scrape weather from web
             
@@ -38,31 +48,3 @@ class weather():
             os.remove(file)
         print("old screen shot deleted")
 
-
-class WeatherImageProvider(QQuickImageProvider):
-    """weather image provider class to provide image to qml when timer is up"""
-    sourceChanged = Signal()
-    
-
-    def __init__(self):
-        super().__init__(QQuickImageProvider.Image)
-        self._source = ""
-
-    @Property(str, notify=sourceChanged)
-    def source(self):
-        return self._source
-
-    @source.setter
-    def source(self, value):
-        if self._source != value:
-            self._source = value
-            self.sourceChanged.emit()       
-
-    def requestImage(self, id, size):
-        image = QImage("/home/death916/code/python/deathclock/sacramento_weather_map.png")  # Load the image from a file
-        size = image.size()  # Get the size of the image
-        return image, size
-
-
-    
-   

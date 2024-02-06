@@ -79,9 +79,11 @@ ApplicationWindow {
                 verticalAlignment: Text.AlignVCenter
             }
 
+            
+
             Image {
                 anchors.fill: parent
-                source: imageProvider.source
+                source: weatherImage
             //fillMode: Image.fill            // Fill the entire area // Uncomment this line to fill the entire area
             }
 
