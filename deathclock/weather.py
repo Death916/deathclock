@@ -8,14 +8,14 @@ from PySide6.QtQml import QQmlApplicationEngine
 
 
 class Weather(QObject):
-    
+    weatherUpdated = Signal(str)
     def __init__(self):
         
         super().__init__()
         
    
     
-    def download_sacramento_weather_map(self, engine):
+    def download_sacramento_weather_map(self,engine):
         url = "https://www.google.com/search?q=weather&hl=en-GB"
         service = Service(executable_path='/home/death916/code/python/deathclock/deathclock/chromedriver')
         options = webdriver.ChromeOptions()
@@ -27,12 +27,14 @@ class Weather(QObject):
         screenshot_path = 'sacramento_weather_map.png'
         map_element.screenshot(screenshot_path)
         print("screen shot taken")
+        
         weather_context = engine.rootContext()
        
         image = screenshot_path
         weather_context = engine.rootContext()
         weather_context.setContextProperty("weatherImage", image)
         driver.quit()
+        self.weatherUpdated.emit(image)
         return screenshot_path
     
         def cur_weather():

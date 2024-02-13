@@ -56,12 +56,17 @@ def main():
     engine.load( 'main.qml')
     # create instance of weather class
     weather_obj = weather.Weather()
-    weather_obj.download_sacramento_weather_map(engine)
+    weather_obj.weatherUpdated.connect(lambda weather_map_path: engine.rootContext().setContextProperty("weatherMapPath", weather_map_path))
 
     # set timer for weather map
     weatherTimer = QTimer()
-    weatherTimer.setInterval(600000) # 10 minutes 
+    weatherTimer.setInterval(300000) # 10 minutes 
     weatherTimer.timeout.connect(weather_obj.download_sacramento_weather_map(engine))
+    weather_obj.download_sacramento_weather_map(engine)
+
+
+    
+    
     weatherTimer.start()
     
    

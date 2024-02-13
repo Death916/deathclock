@@ -83,7 +83,7 @@ ApplicationWindow {
 
             Image {
                 anchors.fill: parent
-                source: weatherImage
+                source: weatherMapPath
             //fillMode: Image.fill            // Fill the entire area // Uncomment this line to fill the entire area
             }
 
