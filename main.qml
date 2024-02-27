@@ -155,7 +155,7 @@ ApplicationWindow {
 
             Timer {
                 id: newsTimer
-                interval: 600005// 10 minutes
+                interval: 300005// 10 minutes
                 running: true
                 repeat: true
                 onTriggered: {
