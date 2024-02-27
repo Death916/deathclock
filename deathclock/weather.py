@@ -34,6 +34,7 @@ class Weather(QObject):
         weather_context = engine.rootContext()
         weather_context.setContextProperty("weatherImage", image)
         driver.quit()
+        print("weather updated")
         self.weatherUpdated.emit(image)
         return screenshot_path
     

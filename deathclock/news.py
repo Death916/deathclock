@@ -42,6 +42,7 @@ class news():
                 self._news_dict_length += 1
                 #for i in self._news_dict:
                 #    print(self._news_dict[i])
+        print("news updated")
         return self._news_dict
 
 

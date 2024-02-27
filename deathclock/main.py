@@ -90,7 +90,7 @@ def main():
     #start timer for news
     news_timer = QTimer()
     news_timer.timeout.connect(news_obj.get_news)
-    news_timer.setInterval(600000) # 10 minutes
+    news_timer.setInterval(300000) # 10 minutes #changed to 5 mins 
 
     news_timer.start()
     
@@ -102,6 +102,6 @@ def main():
 if __name__ == "__main__":
     main()
 
-#TODO: add weather to qml
-#TODO: move weather to own file
+
+
     
