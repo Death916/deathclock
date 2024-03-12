@@ -10,6 +10,7 @@ ApplicationWindow {
     property string currTime: "00:00:00"
     property string onTouchPressed: "Left area not pressed"
     
+    
     Rectangle {
         anchors.fill: parent
 
