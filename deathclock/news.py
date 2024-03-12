@@ -26,7 +26,7 @@ class news():
             for post in d.entries:
                 if self._news_list_length == 10:
                     self._news_list.pop(0)
-                    self._news_list.append(post.title)
+                    self._news_list_length -= 1
                     
                 self._news_list.append(post.title)
                 self._news_list_length += 1

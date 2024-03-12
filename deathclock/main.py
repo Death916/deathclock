@@ -83,7 +83,7 @@ def main():
     news_obj = news.news()
     news_ticker = news_obj.get_news()
     #print(news_obj._news_dict)
-    print(news_ticker)
+    #print(news_ticker)
     news_context = engine.rootContext()
     news_context.setContextProperty("news", str(news_ticker))
 
