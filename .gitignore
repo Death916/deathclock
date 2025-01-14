@@ -2,3 +2,4 @@
 *.txt
 chromedriver
 *.pyc
+.pyc
