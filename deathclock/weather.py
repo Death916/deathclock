@@ -1,53 +1,24 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from PySide6.QtCore import QObject, Signal, Property
+from playwright.sync_api import sync_playwright
 import os
-from PySide6.QtQuick import QQuickImageProvider
-from PySide6.QtGui import QImage, QPixmap
-from PySide6.QtQml import QQmlApplicationEngine
 
-
-class Weather(QObject):
-    weatherUpdated = Signal(str)
+class Weather:
     def __init__(self):
-        
-        super().__init__()
-        
-   
-    
-    def download_sacramento_weather_map(self,engine):
-        url = "https://www.google.com/search?q=weather&hl=en-GB"
-        service = Service(executable_path='/home/death916/code/python/deathclock/deathclock/chromedriver')
-        options = webdriver.ChromeOptions()
-        #options.add_argument('--headless')
-        driver = webdriver.Chrome(service=service, options=options)
-        options.add_argument('--force-dark-mode')
-        driver.get(url)
-        map_element = driver.find_element('id', 'wob_wc')
-        screenshot_path = 'sacramento_weather_map.png'
-        map_element.screenshot(screenshot_path)
-        print("screen shot taken")
-        
-        weather_context = engine.rootContext()
-       
-        image = screenshot_path
-        weather_context = engine.rootContext()
-        weather_context.setContextProperty("weatherImage", image)
-        driver.quit()
-        print("weather updated")
-        self.weatherUpdated.emit(image)
-        return screenshot_path
-    
-        def cur_weather():
-            # scrape weather from web
+        if not os.path.exists('assets'):
+            os.makedirs('assets')
             
-
-            pass
-    def delete_old_screen_shot(self):
-         # delete old screen shot from downloads weather map
-        
-        file = '/home/death916/code/python/deathclock/sacramento_weather_map.png'
-        if os.path.exists(file):
-            os.remove(file)
-        print("old screen shot deleted")
-
+    def get_weather_screenshot(self):
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            
+            # Navigate to Sacramento weather
+            page.goto("https://www.google.com/search?q=weather+sacramento&hl=en-GB")
+            
+            # Wait for and screenshot weather widget
+            page.wait_for_selector('#wob_wc')
+            weather_element = page.locator('#wob_wc')
+            screenshot_path = os.path.join('assets', 'sacramento_weather_map.png')
+            weather_element.screenshot(path=screenshot_path)
+            
+            browser.close()
+            return screenshot_path
