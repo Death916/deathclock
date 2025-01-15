@@ -1,26 +1,4 @@
-/* assets/style.css */
-
-/* News ticker container */
-.ticker {
-    overflow: hidden;
-    white-space: nowrap;
-    background-color: #f0f0f0;
-    padding: 10px;
-  }
-  
-  /* Each headline or news item */
-  .news-item {
-    display: inline-block;
-    padding: 0 2rem;
-    animation: scroll-left 20s linear infinite;
-  }
-  
-  /* Keyframes for scrolling left */
-  @keyframes scroll-left {
-    0%   { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-  }
-  body {
+body {
     background-color: #1a1a2e;
     color: #e6e6fa;
     font-family: 'Arial', sans-serif;
@@ -28,13 +6,42 @@
     padding: 20px;
 }
 
-#curr-time {
-    font-size: 4em;
-    color: #b39ddb;
-    text-shadow: 0 0 10px rgba(179, 157, 219, 0.3);
-    margin: 20px 0;
+/* Container for the scores and weather */
+#scores-weather-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
 }
 
+/* Scores Styles */
+.score-container {
+    max-width: 300px;
+    padding: 10px;
+    flex: 1;
+}
+
+.score-box {
+    background-color: #232338;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border: 1px solid #4a4a82;
+}
+
+.game-score {
+    font-size: 0.9em;
+    color: #e6e6fa;
+    text-align: center;
+}
+
+.game-period {
+    font-size: 0.8em;
+    color: #b39ddb;
+    text-align: center;
+}
+
+/* Weather Styles */
 #weather-display {
     background-color: #232338;
     border-radius: 10px;
@@ -43,64 +50,17 @@
     max-width: 600px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     border: 1px solid #4a4a82;
+    transition: all 0.3s ease;
+    flex: 2;
 }
 
-#weather-display img {
-    max-width: 100%;
-    border-radius: 8px;
-    margin-top: 10px;
-}
-
-.ticker {
-    background-color: #232338;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 20px 0;
-    border: 1px solid #4a4a82;
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-.news-item {
-    display: inline-block;
-    padding: 0 30px;
-    color: #d1c4e9;
-    animation: ticker 30s linear infinite;
-}
-
-@keyframes ticker {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-}
-
-/* Add subtle hover effects */
 #weather-display:hover {
     box-shadow: 0 6px 8px rgba(179, 157, 219, 0.2);
     transform: translateY(-2px);
-    transition: all 0.3s ease;
 }
 
-.score-box {
-    background-color: #232338;
-    margin: 10px 0;
-    padding: 15px;
+#weather-display img {
+    width: 100%;
     border-radius: 8px;
-    border: 1px solid #4a4a82;
-}
-
-.game-score {
-    font-size: 1.2em;
-    color: #e6e6fa;
-    margin-bottom: 5px;
-}
-
-.game-period {
-    font-size: 0.9em;
-    color: #b39ddb;
-}
-
-.score-box:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(179, 157, 219, 0.2);
-    transition: all 0.3s ease;
+    margin-top: 10px;
 }
