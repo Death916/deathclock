@@ -64,3 +64,34 @@ body {
     border-radius: 8px;
     margin-top: 10px;
 }
+/* News Ticker Styles */
+.ticker {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    background-color: #232338;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #4a4a82;
+}
+
+.news-item {
+    display: inline-block;
+    padding-right: 50px;
+    color: #d1c4e9;
+    animation: ticker linear infinite;
+}
+
+@keyframes ticker {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+
+

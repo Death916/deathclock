@@ -61,7 +61,6 @@ def update_weather(n):
         ])
     except Exception as e:
         return html.Div(f"Weather update error: {str(e)}")
-
 @app.callback(
     Output('news-ticker', 'children'),
     Input('news-interval', 'n_intervals')
@@ -81,25 +80,25 @@ def update_news(n):
 
             combined_text = " | ".join(headlines_dict.keys())
             text_px = len(combined_text) * 8  # Approx 8px per character
-            scroll_speed = 500  # px per second
+            scroll_speed = 75  # px per second
             duration = text_px / scroll_speed  # seconds to scroll across
 
             # Enforce a floor duration so it's not too quick for short text
             if duration < 20:
                 duration = 20
 
-            ticker_style = {"animationDuration": f"{duration}s", "whiteSpace": "nowrap"}
+            ticker_style = {"animationDuration": f"{duration}s"}
             
-            items = [
-                html.Div(
-                    f"{headline} | ",
-                    className="news-item",
-                    style=ticker_style
-                )
+            # Ensure all news items are concatenated into a single line
+            combined_items = " | ".join([
+                f"{headline}"
                 for headline in headlines_dict.keys()
-            ]
+            ])
 
-            _cached_news = html.Div(items, style=ticker_style)
+            _cached_news = html.Div(
+                html.Span(combined_items, className="news-item", style=ticker_style),
+                className='ticker'
+            )
             _last_news_update = current_time
             _initial_run = False
             return _cached_news
@@ -109,6 +108,8 @@ def update_news(n):
 
     print("Returning cached news...")
     return _cached_news
+
+
 
 
 
@@ -142,3 +143,4 @@ def update_scores(n):
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050)
+
