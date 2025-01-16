@@ -5,6 +5,7 @@ from time import strftime, localtime
 from weather import Weather
 from news import News
 from scores import NBAScores
+import alarm
 app = Dash(__name__)
 
 # Initialize classes
@@ -30,10 +31,10 @@ app.layout = html.Div([
     ]),
     html.Div(id='news-ticker', className='ticker'),
     # Intervals
-    dcc.Interval(id='clock-interval', interval=1000, n_intervals=0),
+    dcc.Interval(id='clock-interval', interval=60000, n_intervals=0),
     dcc.Interval(id='weather-interval', interval=300000, n_intervals=0),
     dcc.Interval(id='news-interval', interval=300000, n_intervals=0),
-    dcc.Interval(id='nba-interval', interval=60000, n_intervals=0)
+    dcc.Interval(id='nba-interval', interval=300000, n_intervals=0)
 ])
 
 
@@ -61,22 +62,25 @@ def update_weather(n):
         ])
     except Exception as e:
         return html.Div(f"Weather update error: {str(e)}")
+    
+    
 @app.callback(
     Output('news-ticker', 'children'),
     Input('news-interval', 'n_intervals')
 )
 def update_news(n):
+    
     global _last_news_update, _cached_news, _initial_run
     current_time = datetime.datetime.now()
-    # On first run or if 5 minutes have elapsed since last update
-    if _initial_run or (current_time - _last_news_update).total_seconds() >= 300:
-        print("Fetching fresh news...")
-        try:
+    
+    try:
+        if _initial_run or (current_time - _last_news_update).total_seconds() >= 500:
+            print("Fetching fresh news due to timer...")
             headlines_dict = news_obj.get_news()
             if not isinstance(headlines_dict, dict):
-                return html.Div("News update error: Invalid data format")
+                raise ValueError("News update error: Invalid data format")
             if not headlines_dict:
-                return html.Div("No news fetched")
+                raise ValueError("No news fetched")
 
             combined_text = " | ".join(headlines_dict.keys())
             text_px = len(combined_text) * 8  # Approx 8px per character
@@ -89,11 +93,7 @@ def update_news(n):
 
             ticker_style = {"animationDuration": f"{duration}s"}
             
-            # Ensure all news items are concatenated into a single line
-            combined_items = " | ".join([
-                f"{headline}"
-                for headline in headlines_dict.keys()
-            ])
+            combined_items = " | ".join([f"{headline}" for headline in headlines_dict.keys()])
 
             _cached_news = html.Div(
                 html.Span(combined_items, className="news-item", style=ticker_style),
@@ -102,18 +102,29 @@ def update_news(n):
             _last_news_update = current_time
             _initial_run = False
             return _cached_news
+        
+    except Exception as e:
+        print(f"News update error: {str(e)}")
+        # Fallback to cached news or load from local file
+        if _cached_news:
+            print("Using cached news...")
+        else:
+            print("Loading news from news.txt...")
+            try:
+                with open("news.txt", "r") as file:
+                    local_news = file.read().strip()
+                if local_news:
+                    _cached_news = html.Div(
+                        html.Span(local_news, className="news-item", style={"animationDuration": "20"}),
+                        className='ticker'
+                    )
+            except FileNotFoundError:
+                print("news.txt not found.")
+                _cached_news = html.Div("No news available.")
 
-        except Exception as e:
-            return html.Div(f"News feed error: {str(e)}")
-
-    print("Returning cached news...")
     return _cached_news
 
 
-
-
-
-   
 
  #get the scores from the scores API   
 @app.callback(
@@ -140,6 +151,9 @@ def update_scores(n):
             
     except Exception as e:
         return html.Div("Scores unavailable")
+#print time and date
+def print_time():
+    print(strftime("%B %d, %I:%M %p", localtime()))
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050)

@@ -1,4 +1,7 @@
 import feedparser
+from time import localtime, strftime
+def print_time():
+    print(strftime("%B %d, %I:%M %p", localtime()))
 
 class News:
     def __init__(self):
@@ -6,6 +9,7 @@ class News:
         self._news_dict_length = 0
         
     def get_news(self):
+        print_time()
         feeds = []
         self._news_dict = {}  # Reset dict each time
         
