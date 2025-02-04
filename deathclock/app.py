@@ -32,7 +32,7 @@ app.layout = html.Div([
     html.Div(id='news-ticker', className='ticker'),
     # Intervals
     dcc.Interval(id='clock-interval', interval=60000, n_intervals=0),
-    dcc.Interval(id='weather-interval', interval=300000, n_intervals=0),
+    dcc.Interval(id='weather-interval', interval=150000, n_intervals=0),
     dcc.Interval(id='news-interval', interval=300000, n_intervals=0),
     dcc.Interval(id='nba-interval', interval=300000, n_intervals=0)
 ])
@@ -74,7 +74,7 @@ def update_news(n):
     current_time = datetime.datetime.now()
     
     try:
-        if _initial_run or (current_time - _last_news_update).total_seconds() >= 500:
+        if _initial_run or (current_time - _last_news_update).total_seconds() >= 400:
             print("Fetching fresh news due to timer...")
             headlines_dict = news_obj.get_news()
             if not isinstance(headlines_dict, dict):
@@ -156,5 +156,5 @@ def print_time():
     print(strftime("%B %d, %I:%M %p", localtime()))
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    app.run_server(debug=False, host='0.0.0.0', port=8050)
 

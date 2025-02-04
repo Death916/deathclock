@@ -20,7 +20,7 @@ class News:
         # Get latest news from each feed
         for feed in feeds:
             d = feedparser.parse(feed)
-            for post in d.entries[:10]:  # Limit to 3 entries per feed
+            for post in d.entries[:20]:  # Limit to 3 entries per feed
                 if self._news_dict_length >= 20:  # Max 20 total entries
                     return self._news_dict
                     
