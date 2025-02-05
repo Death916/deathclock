@@ -54,10 +54,12 @@ def update_time(n):
 )
 def update_weather(n):
     try:
+        print("UPDATING WEATHER...")
+        print_time()
         weather_obj.get_weather_screenshot()
         return html.Div([
             html.H2("Sacramento Weather"),
-            html.Img(src=app.get_asset_url('sacramento_weather_map.png'),
+            html.Img(src=app.get_asset_url('sacramento_weather_map.png'+  f"?v={datetime.datetime.now().timestamp()}"),
                     style={'maxWidth': '500px'})
         ])
     except Exception as e:
@@ -74,34 +76,34 @@ def update_news(n):
     current_time = datetime.datetime.now()
     
     try:
-        if _initial_run or (current_time - _last_news_update).total_seconds() >= 400:
-            print("Fetching fresh news due to timer...")
-            headlines_dict = news_obj.get_news()
-            if not isinstance(headlines_dict, dict):
-                raise ValueError("News update error: Invalid data format")
-            if not headlines_dict:
-                raise ValueError("No news fetched")
+       
+        print("Fetching fresh news due to timer...")
+        headlines_dict = news_obj.get_news()
+        if not isinstance(headlines_dict, dict):
+            raise ValueError("News update error: Invalid data format")
+        if not headlines_dict:
+            raise ValueError("No news fetched")
 
-            combined_text = " | ".join(headlines_dict.keys())
-            text_px = len(combined_text) * 8  # Approx 8px per character
-            scroll_speed = 75  # px per second
-            duration = text_px / scroll_speed  # seconds to scroll across
+        combined_text = " | ".join(headlines_dict.keys())
+        text_px = len(combined_text) * 8  # Approx 8px per character
+        scroll_speed = 75  # px per second
+        duration = text_px / scroll_speed  # seconds to scroll across
 
-            # Enforce a floor duration so it's not too quick for short text
-            if duration < 20:
-                duration = 20
+        # Enforce a floor duration so it's not too quick for short text
+        if duration < 20:
+            duration = 20
 
-            ticker_style = {"animationDuration": f"{duration}s"}
-            
-            combined_items = " | ".join([f"{headline}" for headline in headlines_dict.keys()])
+        ticker_style = {"animationDuration": f"{duration}s"}
+        
+        combined_items = " | ".join([f"{headline}" for headline in headlines_dict.keys()])
 
-            _cached_news = html.Div(
-                html.Span(combined_items, className="news-item", style=ticker_style),
-                className='ticker'
-            )
-            _last_news_update = current_time
-            _initial_run = False
-            return _cached_news
+        _cached_news = html.Div(
+            html.Span(combined_items, className="news-item", style=ticker_style),
+            className='ticker'
+        )
+        _last_news_update = current_time
+        _initial_run = False
+        return _cached_news
         
     except Exception as e:
         print(f"News update error: {str(e)}")

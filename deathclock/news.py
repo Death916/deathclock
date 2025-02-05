@@ -1,5 +1,6 @@
 import feedparser
 from time import localtime, strftime
+import random
 def print_time():
     print(strftime("%B %d, %I:%M %p", localtime()))
 
@@ -12,7 +13,7 @@ class News:
         print_time()
         feeds = []
         self._news_dict = {}  # Reset dict each time
-        
+        self._news_dict_length = 0
         # Load RSS feed list
         with open("feeds.txt", "r") as f:
             feeds = [line.strip() for line in f]
@@ -20,7 +21,12 @@ class News:
         # Get latest news from each feed
         for feed in feeds:
             d = feedparser.parse(feed)
-            for post in d.entries[:20]:  # Limit to 3 entries per feed
+            #randomly select 20 news items
+            random.shuffle(d.entries)
+            #its getting all posts from first feed because there is more than 20
+            
+            
+            for post in d.entries[:20]:  # Limit to 20 entries per feed
                 if self._news_dict_length >= 20:  # Max 20 total entries
                     return self._news_dict
                     
