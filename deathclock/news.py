@@ -29,7 +29,7 @@ class News:
             for post in d.entries[:20]:  # Limit to 20 entries per feed
                 if self._news_dict_length >= 20:  # Max 20 total entries
                     return self._news_dict
-                    
+                
                 self._news_dict[post.title] = {
                     'source': d.feed.title,
                     'publish_date': post.published,

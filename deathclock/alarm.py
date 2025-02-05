@@ -14,7 +14,7 @@ class Alarm:
 
     def add_alarm(self, alarm_time,current_time):
         self.alarms.append(alarm_time)
-        self.alarm_times.append(alarm_time.time())
+
         self.current_time = current_time
 
         print(f"Alarm set for {alarm_time}")

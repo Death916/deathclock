@@ -1,24 +1,34 @@
-from dash import Dash, html, dcc
-from dash.dependencies import Input, Output
+from dash import Dash, html, dcc, Input, Output, State
 import datetime
 from time import strftime, localtime
 from weather import Weather
 from news import News
 from scores import NBAScores
 import alarm
+
 app = Dash(__name__)
 
 # Initialize classes
 weather_obj = Weather()
 news_obj = News()
 scores_obj = NBAScores()
-#uses arbitrary date in the past as initial value
+alarm_obj = alarm.Alarm()
+
+# Uses arbitrary date in the past as initial value
 _last_news_update = datetime.datetime(2000, 1, 1)
 _cached_news = []
 _initial_run = True
 _timer_elapsed = False
+
+# Layout includes:
+# - The clock display (clickable) as an H1 element
+# - A hidden time input that will appear on clicking the clock
+# - An output div for the selected time
 app.layout = html.Div([
-    html.H1(id='clock-display', style={'textAlign': 'center'}),
+    html.H1(id='clock-display', style={'textAlign': 'center', 'cursor': 'pointer'}),
+    dcc.Input(id='time-input', type='time', style={'display': 'none', 'margin': '0 auto'}),
+    html.Div(id='output-selected-time', style={'textAlign': 'center', 'marginBottom': '20px'}),
+    
     html.Div([
         # Container for scores and weather
         html.Div([
@@ -38,15 +48,39 @@ app.layout = html.Div([
 ])
 
 
-
-    
-
 @app.callback(
     Output('clock-display', 'children'),
     Input('clock-interval', 'n_intervals')
 )
 def update_time(n):
     return strftime("%B %d, %I:%M %p", localtime())
+
+
+# When the clock display is clicked, show the time input.
+@app.callback(
+    Output('time-input', 'style'),
+    Input('clock-display', 'n_clicks'),
+    State('time-input', 'style')
+)
+def toggle_time_input(n_clicks, current_style):
+    if n_clicks and n_clicks % 2 == 1:
+        # On odd clicks, display the time input.
+        return {'display': 'block', 'margin': '0 auto'}
+    return {'display': 'none', 'margin': '0 auto'}
+
+
+# Callback to process the selected time from the time input.
+@app.callback(
+    Output('output-selected-time', 'children'),
+    Input('time-input', 'value')
+)
+def process_selected_time(time_value):
+    if time_value:
+        # Here you can pass time_value to another function if desired.
+        alarm_obj.add_alarm(time_value, datetime.datetime.now())
+        return f'Alarm time: {time_value}'
+    return 'No time selected yet.'
+
 
 @app.callback(
     Output('weather-display', 'children'),
@@ -55,48 +89,34 @@ def update_time(n):
 def update_weather(n):
     try:
         print("UPDATING WEATHER...")
-        print_time()
         weather_obj.get_weather_screenshot()
         return html.Div([
             html.H2("Sacramento Weather"),
-            html.Img(src=app.get_asset_url('sacramento_weather_map.png'+  f"?v={datetime.datetime.now().timestamp()}"),
-                    style={'maxWidth': '500px'})
+            html.Img(src=app.get_asset_url('sacramento_weather_map.png'
+                                            + f"?v={datetime.datetime.now().timestamp()}"),
+                     style={'maxWidth': '500px'})
         ])
     except Exception as e:
         return html.Div(f"Weather update error: {str(e)}")
-    
-    
+
+
 @app.callback(
     Output('news-ticker', 'children'),
     Input('news-interval', 'n_intervals')
 )
 def update_news(n):
-    
     global _last_news_update, _cached_news, _initial_run
     current_time = datetime.datetime.now()
-    
     try:
-       
-        print("Fetching fresh news due to timer...")
         headlines_dict = news_obj.get_news()
-        if not isinstance(headlines_dict, dict):
-            raise ValueError("News update error: Invalid data format")
-        if not headlines_dict:
-            raise ValueError("No news fetched")
-
         combined_text = " | ".join(headlines_dict.keys())
-        text_px = len(combined_text) * 8  # Approx 8px per character
-        scroll_speed = 75  # px per second
-        duration = text_px / scroll_speed  # seconds to scroll across
-
-        # Enforce a floor duration so it's not too quick for short text
+        text_px = len(combined_text) * 8  # Approximate 8px per character
+        scroll_speed = 75  # pixels per second
+        duration = text_px / scroll_speed  # seconds required to scroll across
         if duration < 20:
             duration = 20
-
         ticker_style = {"animationDuration": f"{duration}s"}
-        
         combined_items = " | ".join([f"{headline}" for headline in headlines_dict.keys()])
-
         _cached_news = html.Div(
             html.Span(combined_items, className="news-item", style=ticker_style),
             className='ticker'
@@ -104,31 +124,12 @@ def update_news(n):
         _last_news_update = current_time
         _initial_run = False
         return _cached_news
-        
     except Exception as e:
-        print(f"News update error: {str(e)}")
-        # Fallback to cached news or load from local file
         if _cached_news:
-            print("Using cached news...")
-        else:
-            print("Loading news from news.txt...")
-            try:
-                with open("news.txt", "r") as file:
-                    local_news = file.read().strip()
-                if local_news:
-                    _cached_news = html.Div(
-                        html.Span(local_news, className="news-item", style={"animationDuration": "20"}),
-                        className='ticker'
-                    )
-            except FileNotFoundError:
-                print("news.txt not found.")
-                _cached_news = html.Div("No news available.")
-
-    return _cached_news
+            return _cached_news
+        return html.Div("No news available.")
 
 
-
- #get the scores from the scores API   
 @app.callback(
     Output('nba-scores-display', 'children'),
     Input('nba-interval', 'n_intervals')
@@ -138,7 +139,6 @@ def update_scores(n):
         games = scores_obj.get_scores()
         if not games:
             return html.Div("No games available", className='text-center')
-            
         return html.Div([
             html.Div([
                 html.Div([
@@ -150,13 +150,9 @@ def update_scores(n):
             ], className='score-box')
             for game in games
         ], className='score-container')
-            
     except Exception as e:
         return html.Div("Scores unavailable")
-#print time and date
-def print_time():
-    print(strftime("%B %d, %I:%M %p", localtime()))
+
 
 if __name__ == '__main__':
     app.run_server(debug=False, host='0.0.0.0', port=8050)
-
