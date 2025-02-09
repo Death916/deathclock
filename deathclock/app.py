@@ -13,6 +13,7 @@ weather_obj = Weather()
 news_obj = News()
 scores_obj = NBAScores()
 alarm_obj = alarm.Alarm()
+_alarm_time = None
 
 # Uses arbitrary date in the past as initial value
 _last_news_update = datetime.datetime(2000, 1, 1)
@@ -39,7 +40,8 @@ app.layout = html.Div([
             html.Div(id='weather-display')
         ], id='scores-weather-container'),
     ]),
-    html.Div(id='news-ticker', className='ticker'),
+    #add class back if not working still
+    html.Div(id='news-ticker'),
     # Intervals
     dcc.Interval(id='clock-interval', interval=60000, n_intervals=0),
     dcc.Interval(id='weather-interval', interval=150000, n_intervals=0),
@@ -77,6 +79,8 @@ def toggle_time_input(n_clicks, current_style):
 def process_selected_time(time_value):
     if time_value:
         # Here you can pass time_value to another function if desired.
+        global alarm_time
+        alarm_time = time_value
         alarm_obj.add_alarm(time_value, datetime.datetime.now())
         return f'Alarm time: {time_value}'
     return 'No time selected yet.'
@@ -108,15 +112,18 @@ def update_news(n):
     global _last_news_update, _cached_news, _initial_run
     current_time = datetime.datetime.now()
     try:
+        print("UPDATING NEWS...")
         headlines_dict = news_obj.get_news()
-        combined_text = " | ".join(headlines_dict.keys())
-        text_px = len(combined_text) * 8  # Approximate 8px per character
-        scroll_speed = 75  # pixels per second
-        duration = text_px / scroll_speed  # seconds required to scroll across
-        if duration < 20:
-            duration = 20
+        # Combine source and headline for each news item
+        combined_items = " | ".join([f"{data['source']}: {headline}" 
+                                   for headline, data in headlines_dict.items()])
+        
+        text_px = len(combined_items) * 8
+        scroll_speed = 75
+        duration = max(text_px / scroll_speed, 20)
+        
         ticker_style = {"animationDuration": f"{duration}s"}
-        combined_items = " | ".join([f"{headline}" for headline in headlines_dict.keys()])
+        
         _cached_news = html.Div(
             html.Span(combined_items, className="news-item", style=ticker_style),
             className='ticker'
@@ -124,6 +131,7 @@ def update_news(n):
         _last_news_update = current_time
         _initial_run = False
         return _cached_news
+        
     except Exception as e:
         if _cached_news:
             return _cached_news
@@ -152,6 +160,15 @@ def update_scores(n):
         ], className='score-container')
     except Exception as e:
         return html.Div("Scores unavailable")
+
+# Check for alarms and play sound if triggered
+def check_alarms():
+    trigg = alarm_obj.check_alarm()
+    if trigg:
+        print("ALARM TRIGGERED!")
+        # Play alarm sound here using dash audio component
+check_alarms()
+
 
 
 if __name__ == '__main__':

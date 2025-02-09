@@ -1,6 +1,8 @@
 import feedparser
 from time import localtime, strftime
 import random
+import socket
+
 def print_time():
     print(strftime("%B %d, %I:%M %p", localtime()))
 
@@ -8,41 +10,72 @@ class News:
     def __init__(self):
         self._news_dict = {}
         self._news_dict_length = 0
+        # Set timeout for feed fetching
+        socket.setdefaulttimeout(10)
         
     def get_news(self):
         print_time()
         feeds = []
-        self._news_dict = {}  # Reset dict each time
+        self._news_dict = {}
         self._news_dict_length = 0
-        # Load RSS feed list
-        with open("feeds.txt", "r") as f:
-            feeds = [line.strip() for line in f]
-            
-        # Get latest news from each feed
+        
+        try:
+            with open("feeds.txt", "r") as f:
+                feeds = [line.strip() for line in f]
+        except Exception as e:
+            print(f"Error reading feeds.txt: {e}")
+            return {}
+        
+        all_entries = []
+        print("Getting news entries...")
+        
         for feed in feeds:
-            d = feedparser.parse(feed)
-            #randomly select 20 news items
-            random.shuffle(d.entries)
-            #its getting all posts from first feed because there is more than 20
+            try:
+                feed_entries = []
+                print(f"Fetching from feed: {feed}")  # Debug print
+                d = feedparser.parse(feed)
+                
+                if hasattr(d, 'status') and d.status != 200:
+                    print(f"Skip feed {feed}: status {d.status}")
+                    continue
+                    
+                for post in d.entries:
+                    feed_entries.append({
+                        'title': post.title,
+                        'source': d.feed.title if hasattr(d.feed, 'title') else 'Unknown',
+                        'publish_date': post.published if hasattr(post, 'published') else '',
+                        'summary': post.summary if hasattr(post, 'summary') else ''
+                    })
+                
+                if feed_entries:
+                    selected = random.sample(feed_entries, min(10, len(feed_entries)))
+                    all_entries.extend(selected)
+                    print(f"Added {len(selected)} entries from {feed}")  # Debug print
+                
+                if len(all_entries) >= 30:
+                    break
+                    
+            except Exception as e:
+                print(f"Error processing feed {feed}: {e}")
+                continue
+        
+        if not all_entries:
+            print("No entries collected")
+            return {}
             
-            
-            for post in d.entries[:20]:  # Limit to 20 entries per feed
-                if self._news_dict_length >= 20:  # Max 20 total entries
-                    return self._news_dict
-                
-                self._news_dict[post.title] = {
-                    'source': d.feed.title,
-                    'publish_date': post.published,
-                    'headline': post.title,
-                    'summary': post.summary
-                }
-                self._news_dict_length += 1
-                # Store last 20 news items in text file
-
-                
-                with open("news.txt", "w") as f:
-                    for headline in list(self._news_dict.keys())[-20:]:
-                        f.write(f"{headline}\n")
-
-                
+        if len(all_entries) > 30:
+            all_entries = random.sample(all_entries, 30)
+        
+        for entry in all_entries:
+            self._news_dict[entry['title']] = entry
+        
+        try:
+            with open("news.txt", "w") as f:
+                print("Writing news to file...")
+                for entry in self._news_dict.values():
+                    f.write(f"[{entry['publish_date']}] {entry['source']}: {entry['title']}\n")
+                    f.flush()
+        except Exception as e:
+            print(f"Error writing to news.txt: {e}")
+        
         return self._news_dict
