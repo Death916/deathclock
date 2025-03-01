@@ -13,6 +13,8 @@ dependencies = [
     "dash>=2.18.2,<3",
     "nba-api>=1.6.1,<2",
     "playwright>=1.49.1,<2",
+    "aiofiles>=24.1.0",
+    "aiohttp>=3.11.13",
 ]
 
 [dependency-groups]

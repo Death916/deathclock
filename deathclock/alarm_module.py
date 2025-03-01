@@ -1,6 +1,6 @@
 import datetime
 from dash import html, dcc, Input, Output, State
-import alarm # Import Alarm class
+import alarm 
 
 class AlarmModule:
     def __init__(self, app):
