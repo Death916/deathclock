@@ -44,6 +44,13 @@ class NBAScores:
             print(f"Error fetching scores: {e}")
             return []
 
+class mlbScores:
+    def __init__(self):
+        self._scores = []
+        
+    def get_games(self):
+        pass
+
 if __name__ == "__main__":
     scores = NBAScores()
     results = scores.get_scores()
