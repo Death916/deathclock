@@ -1,30 +1,55 @@
-from playwright.sync_api import sync_playwright
 import os
+import subprocess
+import datetime
 
 class Weather:
     def __init__(self):
-        if not os.path.exists('assets'):
-            os.makedirs('assets')
-            
+        # Get the directory where this script (weather.py) is located
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Construct the absolute path to the 'assets' directory in the same directory as the script
+        self.assets_dir = os.path.join(self.script_dir, 'assets')
+
+        # Ensure the assets directory exists
+        if not os.path.exists(self.assets_dir):
+            os.makedirs(self.assets_dir)
+    
+    def delete_old_screenshots(self):
+        """
+        Deletes all PNG files in the 'assets' directory that start with 'sacramento_weather_'.
+        """
+        for filename in os.listdir(self.assets_dir):
+            if filename.startswith("sacramento_weather_"):
+                os.remove(os.path.join(self.assets_dir, filename))
+
     def get_weather_screenshot(self):
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            context = browser.new_context()
-            context.add_init_script("""
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined,
-            });
-        """)
-            page = context.new_page()
-            
-            # Navigate to Sacramento weather
-            page.goto("https://www.bing.com/search?q=sacramento+weather&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq=sacramento+weathe&sc=12-17&sk=&cvid=9D84287D34AC483C85F6E3AA7F943C4F&ghsh=0&ghacc=0&ghpl=")
-            
-            # Wait for and screenshot weather widget
-            page.wait_for_selector('#wtr_cardContainer > div.b_antiTopBleed.b_antiSideBleed.b_antiBottomBleed.b_weainner')
-            weather_element = page.locator('#wtr_cardContainer > div.b_antiTopBleed.b_antiSideBleed.b_antiBottomBleed.b_weainner')
-            screenshot_path = os.path.join('assets', 'sacramento_weather_map.png')
-            weather_element.screenshot(path=screenshot_path)
-            
-            browser.close()
+        """
+        Fetches weather information for Sacramento from wttr.in using curl and saves it as a PNG.
+        Returns the path to the saved image.
+        """
+        try:
+            # Create a timestamp for the filename
+            timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            screenshot_filename = f"sacramento_weather_{timestamp}.png"
+            screenshot_path = os.path.join(self.assets_dir, screenshot_filename) # save to the proper location
+
+            # Use curl to get the weather data from wttr.in and save it as a PNG.
+            # add the scale #2 to make the png larger
+            curl_command = [
+                "curl",
+                "-s",  # Silent mode
+                "wttr.in/Sacramento.png?u",
+                "-o",
+                screenshot_path,
+            ]
+            self.delete_old_screenshots()
+            subprocess.run(curl_command, check=True)
+
             return screenshot_path
+
+        except subprocess.CalledProcessError as e:
+            print(f"Error fetching weather data: {e}")
+            return None
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            return None

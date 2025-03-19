@@ -19,14 +19,14 @@ def create_app():
                     html.H2("NBA Scores"),
                     html.Div(id='nba-scores-display', className='score-container')
                 ]),
-                html.Div(id='weather-display')
-            ], id='scores-weather-container'),
+                html.Div(id='weather-display', style={"display": "flex", "justify-content": "center", "margin-bottom":"20px"})
+            ], id='scores-weather-container', style={"display": "flex", "gap": "20px"}),
         ]),
         
         html.Div(id='news-ticker'),
         
         dcc.Interval(id='clock-interval', interval=60000, n_intervals=0),
-        dcc.Interval(id='weather-interval', interval=150000, n_intervals=0),
+        dcc.Interval(id='weather-interval', interval=550000, n_intervals=0),
         dcc.Interval(id='news-interval', interval=300000, n_intervals=0),
         dcc.Interval(id='nba-interval', interval=300000, n_intervals=0)
     ])
