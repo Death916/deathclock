@@ -62,24 +62,22 @@ class mlbScores:
             return []
         
     def get_scores(self):
-        try:
-            games = self.get_games()
-            scores_list = []
-            for game in games:
-                try:
-                    game_data = {
-                        'home_team': game['home_name'],
-                        'home_score': game['home_score'],
-                        'away_team': game['away_name'],
-                        'away_score': game['away_score'],
-                        'status': game['status']
-                    }
-                    scores_list.append(game_data)
-                except KeyError as e:
-                    print(f"Error processing game data: {e}")
-                    continue
-            self._scores = scores_list
-    
+        games = self.get_games()
+        scores_list = []
+        for game in games:
+            try:
+                game_data = {
+                    'home_team': game['home_name'],
+                    'home_score': game['home_score'],
+                    'away_team': game['away_name'],
+                    'away_score': game['away_score'],
+                    'status': game['status']
+                }
+                scores_list.append(game_data)
+            except KeyError as e:
+                print(f"Error processing game data: {e}")
+                continue
+            
         
 
 if __name__ == "__main__":
