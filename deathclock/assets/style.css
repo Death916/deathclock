@@ -6,7 +6,7 @@ body {
     padding: 10px;
     font-size: 16px;
     overflow-x: hidden;
-    min-width: 360px; /* Minimum width to prevent extreme squishing */
+    min-width: 360px;
 }
 
 h1 {
@@ -25,18 +25,20 @@ h2 {
     flex-wrap: wrap;
     gap: 20px;
     width: 100%;
-    justify-content: center; /* Center items on small screens */
+    justify-content: center;
 }
 
 #nba-container,
-#mlb-container{
+#mlb-container {
     flex: 1;
-    min-width: 300px; /* Minimum width for the containers */
+    min-width: 300px;
 }
+
 /* Individual Score Containers */
 .score-container {
     width: 100%;
-    padding: 5px;
+    padding: 0; /* Remove padding from score container */
+    margin: 0; /* remove margin from score container */
 }
 
 #mlb-scores-display {
@@ -45,22 +47,27 @@ h2 {
 
 .score-box {
     background-color: #232338;
-    padding: 5px;
-    margin-bottom: 5px;
+    padding: 2px 5px; /* Reduced padding on score boxes */
+    margin-bottom: 2px; /* Reduced margin on score boxes */
     border-radius: 6px;
     border: 1px solid #4a4a82;
+    display: flex; /* Use flexbox for inner alignment */
+    flex-direction: column; /* Stack the game-score and game-period vertically */
+    justify-content: center; /* Center vertically */
 }
 
 .game-score {
     font-size: 0.9em;
     color: #e6e6fa;
     text-align: center;
+    margin: 2px 0; /* Add a small top/bottom margin */
 }
 
 .game-period {
     font-size: 0.8em;
     color: #b39ddb;
     text-align: center;
+    margin: 2px 0; /* Add a small top/bottom margin */
 }
 
 /* Weather Styles */
@@ -73,7 +80,7 @@ h2 {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     border: 1px solid #4a4a82;
     transition: all 0.3s ease;
-     flex: 1; /* Each section takes equal width */
+    flex: 1;
 }
 
 #weather-display:hover {
@@ -117,7 +124,7 @@ h2 {
 }
 
 /* Media Queries */
-@media (min-width: 1000px) {
+@media (min-width: 750px) {
     /* Landscape layout */
     body {
         padding: 20px;
@@ -127,8 +134,8 @@ h2 {
     }
 
     #main-content-container {
-        flex-wrap: nowrap; /* No wrapping on landscape */
-         justify-content: space-around;
+        flex-wrap: nowrap;
+        justify-content: space-around;
     }
 
     #mlb-scores-display {
@@ -136,19 +143,19 @@ h2 {
     }
 
     .score-container {
-        padding: 10px;
+        padding: 0; /* Remove padding from score container */
+        margin: 0; /* remove margin from score container */
     }
 
     .score-box {
-        padding: 8px;
-        margin-bottom: 8px;
+        padding: 2px 5px; /* Reduced padding on score boxes */
+        margin-bottom: 2px; /* Reduced margin on score boxes */
     }
 
     #weather-display {
         padding: 20px;
-        margin: 0; /* Remove vertical margin on landscape */
+        margin: 0;
         max-width: 400px;
-        
     }
 
     .ticker {
@@ -183,17 +190,28 @@ h2 {
     #main-content-container {
         gap: 1px;
     }
+
     #nba-container,
-    #mlb-container{
+    #mlb-container {
         min-width: 0;
+    }
+    .score-container {
+         padding: 0; /* Remove padding from score container */
+        margin: 0; /* remove margin from score container */
+    }
+    .score-box {
+         padding: 2px 5px; /* Reduced padding on score boxes */
+        margin-bottom: 2px; /* Reduced margin on score boxes */
     }
 
     .game-score {
         font-size: 0.8em;
+         margin: 2px 0; /* Add a small top/bottom margin */
     }
 
     .game-period {
         font-size: 0.7em;
+         margin: 2px 0; /* Add a small top/bottom margin */
     }
 
     .ticker {
