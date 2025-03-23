@@ -15,6 +15,7 @@ dependencies = [
     "playwright>=1.49.1,<2",
     "aiofiles>=24.1.0",
     "aiohttp>=3.11.13",
+    "mlb-statsapi>=1.8.1",
 ]
 
 [dependency-groups]

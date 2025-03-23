@@ -1,5 +1,6 @@
 from nba_api.live.nba.endpoints import scoreboard
 from datetime import datetime, timedelta
+import statsapi
 
 class NBAScores:
     def __init__(self):
@@ -47,9 +48,39 @@ class NBAScores:
 class mlbScores:
     def __init__(self):
         self._scores = []
+        self._games = []
+
         
     def get_games(self):
-        pass
+        try:
+            # Get MLB games data
+            games = statsapi.schedule()
+            self._games = games
+            return self._games
+        except Exception as e:
+            print(f"Error fetching MLB games: {e}")
+            return []
+        
+    def get_scores(self):
+        try:
+            games = self.get_games()
+            scores_list = []
+            for game in games:
+                try:
+                    game_data = {
+                        'home_team': game['home_name'],
+                        'home_score': game['home_score'],
+                        'away_team': game['away_name'],
+                        'away_score': game['away_score'],
+                        'status': game['status']
+                    }
+                    scores_list.append(game_data)
+                except KeyError as e:
+                    print(f"Error processing game data: {e}")
+                    continue
+            self._scores = scores_list
+    
+        
 
 if __name__ == "__main__":
     scores = NBAScores()
