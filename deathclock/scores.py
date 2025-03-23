@@ -64,6 +64,9 @@ class mlbScores:
     def get_scores(self):
         games = self.get_games()
         scores_list = []
+        if not games:
+             print("No mlb games found")
+             return []
         for game in games:
             try:
                 game_data = {
@@ -77,8 +80,7 @@ class mlbScores:
             except KeyError as e:
                 print(f"Error processing game data: {e}")
                 continue
-            
-        
+        return scores_list # RETURN THE LIST
 
 if __name__ == "__main__":
     scores = NBAScores()

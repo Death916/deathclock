@@ -38,7 +38,7 @@ class Weather:
             curl_command = [
                 "curl",
                 "-s",  # Silent mode
-                "wttr.in/Sacramento.png?u",
+                "v2.wttr.in/Sacramento.png?0pq&scale=2",  # Fetch weather data for Sacramento
                 "-o",
                 screenshot_path,
             ]

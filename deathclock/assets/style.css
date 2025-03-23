@@ -3,28 +3,50 @@ body {
     color: #e6e6fa;
     font-family: 'Arial', sans-serif;
     margin: 0;
-    padding: 20px;
-}
-
-/* Container for the scores and weather */
-#scores-weather-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    width: 100%;
-}
-
-/* Scores Styles */
-.score-container {
-    max-width: 300px;
     padding: 10px;
+    font-size: 16px;
+    overflow-x: hidden;
+    min-width: 360px; /* Minimum width to prevent extreme squishing */
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+/* Main Content Container (Scores and Weather) */
+#main-content-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+    justify-content: center; /* Center items on small screens */
+}
+
+#nba-container,
+#mlb-container{
     flex: 1;
+    min-width: 300px; /* Minimum width for the containers */
+}
+/* Individual Score Containers */
+.score-container {
+    width: 100%;
+    padding: 5px;
+}
+
+#mlb-scores-display {
+    column-count: 1;
 }
 
 .score-box {
     background-color: #232338;
-    padding: 8px;
-    margin-bottom: 8px;
+    padding: 5px;
+    margin-bottom: 5px;
     border-radius: 6px;
     border: 1px solid #4a4a82;
 }
@@ -45,13 +67,13 @@ body {
 #weather-display {
     background-color: #232338;
     border-radius: 10px;
-    padding: 20px;
-    margin: 20px auto;
-    max-width: 600px;
+    padding: 10px;
+    margin: 10px auto;
+    max-width: 100%;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     border: 1px solid #4a4a82;
     transition: all 0.3s ease;
-    flex: 2;
+     flex: 1; /* Each section takes equal width */
 }
 
 #weather-display:hover {
@@ -62,8 +84,9 @@ body {
 #weather-display img {
     width: 100%;
     border-radius: 8px;
-    margin-top: 10px;
+    margin-top: 5px;
 }
+
 /* News Ticker Styles */
 .ticker {
     position: fixed;
@@ -72,14 +95,14 @@ body {
     overflow: hidden;
     white-space: nowrap;
     background-color: #232338;
-    padding: 15px;
+    padding: 5px;
     border-radius: 8px;
     border: 1px solid #4a4a82;
 }
 
 .news-item {
     display: inline-block;
-    padding-right: 50px;
+    padding-right: 30px;
     color: #d1c4e9;
     animation: ticker linear infinite;
 }
@@ -93,5 +116,91 @@ body {
     }
 }
 
+/* Media Queries */
+@media (min-width: 1000px) {
+    /* Landscape layout */
+    body {
+        padding: 20px;
+        font-size: 18px;
+        max-width: 1500px;
+        margin: 0 auto;
+    }
 
+    #main-content-container {
+        flex-wrap: nowrap; /* No wrapping on landscape */
+         justify-content: space-around;
+    }
 
+    #mlb-scores-display {
+        column-count: 2;
+    }
+
+    .score-container {
+        padding: 10px;
+    }
+
+    .score-box {
+        padding: 8px;
+        margin-bottom: 8px;
+    }
+
+    #weather-display {
+        padding: 20px;
+        margin: 0; /* Remove vertical margin on landscape */
+        max-width: 400px;
+        
+    }
+
+    .ticker {
+        padding: 15px;
+    }
+
+    .news-item {
+        padding-right: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Phone screens */
+    body {
+        font-size: 14px;
+        padding: 0;
+        transform-origin: top left;
+        transform: scale(0.6);
+        width: 166.66%;
+        margin-left: -33.33%;
+        min-width: 0;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    #main-content-container {
+        gap: 1px;
+    }
+    #nba-container,
+    #mlb-container{
+        min-width: 0;
+    }
+
+    .game-score {
+        font-size: 0.8em;
+    }
+
+    .game-period {
+        font-size: 0.7em;
+    }
+
+    .ticker {
+        padding: 5px;
+    }
+
+    .news-item {
+        padding-right: 15px;
+    }
+}
