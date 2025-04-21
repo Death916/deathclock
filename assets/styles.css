@@ -1,0 +1,85 @@
+/* assets/styles.css */
+
+/* Basic ticker styling */
+.ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    background-color: #f0f0f0; /* Light background for visibility */
+    padding: 10px 0;
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .ticker-move {
+    /* Animation properties will be set dynamically via style prop */
+    display: inline-block;
+    white-space: nowrap;
+    padding-right: 100%; /* Ensures the loop effect */
+    animation-name: ticker;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  
+  /* The animation */
+  @keyframes ticker {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      /* Translate left by the width of the text */
+      /* The actual value is set dynamically if possible, otherwise estimate */
+       transform: translateX(-100%); /* Simplified fallback */
+    }
+  }
+  
+  /* Style for individual news items if needed */
+  .news-item {
+    margin: 0 15px; /* Spacing between items */
+    font-size: 1em;
+  }
+  
+  /* Styling for score boxes */
+  .score-container {
+      display: flex;
+      flex-direction: column; /* Stack games vertically */
+      gap: 8px; /* Space between score boxes */
+      align-items: center; /* Center boxes if container is wider */
+  }
+  
+  .score-box {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      min-width: 200px; /* Ensure minimum width */
+      text-align: center;
+  }
+  
+  .game-score {
+      font-weight: bold;
+      font-size: 1.1em;
+      display: block; /* Put score on its own line */
+      margin-bottom: 4px;
+  }
+  
+  .game-period, .game-status {
+      font-size: 0.9em;
+      color: #555;
+      display: block; /* Put status on its own line */
+  }
+  
+  /* Make MLB scores display in columns if desired */
+  .mlb-score-container {
+      display: block; /* Override flex */
+      column-count: 2;
+      column-gap: 15px;
+      padding: 0 10px; /* Add some padding */
+  }
+  /* Ensure MLB boxes break correctly */
+  .mlb-score-container .score-box {
+      display: inline-block; /* Necessary for column break */
+      width: 95%; /* Adjust width as needed */
+      margin-bottom: 10px; /* Space below items in columns */
+      break-inside: avoid-column; /* Try to prevent breaking inside a box */
+  }
