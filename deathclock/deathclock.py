@@ -29,9 +29,9 @@ def index() -> rx.Component:
                     color="white",
                     background_color="#6f42c1",
                 ),
-                rx.box(
+                rx.card(
                     rx.image(
-                        src=Weather().get_weather_screenshot(),
+                        src="/weather.jpg",  # Use relative path to static asset
                         alt="Weather",
                         width="100%",
                         height="auto",

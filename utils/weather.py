@@ -7,8 +7,8 @@ class Weather:
         # Get the directory where this script (weather.py) is located
         self.script_dir = os.path.dirname(os.path.abspath(__file__))
 
-        # Construct the absolute path to the 'assets' directory in the same directory as the script
-        self.assets_dir = os.path.join(self.script_dir, 'assets')
+        # Construct the absolute path to the 'assets' directory in the project root
+        self.assets_dir = os.path.join(os.path.dirname(os.path.dirname(self.script_dir)), 'assets')
 
         # Ensure the assets directory exists
         if not os.path.exists(self.assets_dir):
@@ -30,7 +30,7 @@ class Weather:
         try:
             # Create a timestamp for the filename
             timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            screenshot_filename = f"sacramento_weather_{timestamp}.png"
+            screenshot_filename = "weather.png"
             screenshot_path = os.path.join(self.assets_dir, screenshot_filename) # save to the proper location
 
             # Use curl to get the weather data from wttr.in and save it as a PNG.
