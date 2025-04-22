@@ -4,8 +4,7 @@ import reflex as rx
 from datetime import datetime, timezone
 import asyncio
 import time
-# Remove rxconfig import if not used directly
-# from rxconfig import config
+from rxconfig import config
 # --- Import your Weather utility ---
 from utils.weather import Weather
 
@@ -31,7 +30,7 @@ class State(rx.State):
 
     # --- Weather-specific state variables ---
     last_weather_update: str = "Never"
-    # Initialize with the base path, it will be updated with cache-buster
+    
     weather_img: str = WEATHER_IMAGE_PATH
     # Placeholder for the weather client
     _weather_client: Weather | None = None # This will be set in the constructor
@@ -55,6 +54,7 @@ class State(rx.State):
     # --- on_load Handler ---
     async def start_background_tasks(self):
         """Starts the weather background task when the page loads."""
+        rx.remove_local_storage("chakra-ui-color-mode")
         logging.info("Triggering background tasks: Weather")
         # *** FIX: Return a list containing the handler reference ***
         return [State.fetch_weather]
@@ -106,11 +106,13 @@ class State(rx.State):
 
 
 def index() -> rx.Component:
-    """ Main UI definition, preserving original structure. """
+    
     return rx.container(
+        rx.theme_panel(default_open=False),
+        
         rx.center(
             rx.vstack(
-                # Original Clock Button
+                
                 rx.button(
                     rx.moment(interval=1000, format="HH:mm:ss"),
                     font_size="4xl",
@@ -119,17 +121,18 @@ def index() -> rx.Component:
                     background_color="#6f42c1", # Original color
                  ),
 
-                # Original Flex Layout for Cards
+                
                 rx.flex(
                     rx.card(
                         rx.box(
-                            rx.text("SPORTS GO HERE"), # Placeholder
+                            rx.text("SPORTS GO HERE"), 
                         ),
                     ),
                    
                     rx.card(
                         rx.vstack( # Added vstack for title/image/status
                             rx.heading("Weather", size="4"),
+                            
                             rx.image(
                                 
                                 src=State.weather_img,
@@ -153,7 +156,8 @@ def index() -> rx.Component:
                     
                     rx.card(
                         rx.box(
-                            rx.text("Other sports"), # Placeholder
+                            rx.text("Other sports"),
+                             # Placeholder
                         ),
                     ),
                     # Original flex settings
@@ -162,7 +166,7 @@ def index() -> rx.Component:
                     justify="center", # Center cards horizontally
                     align="stretch", # Stretch cards vertically if needed
                 ),
-                # Original vstack settings
+                
                  align="center",
                  spacing="4", # Spacing between clock and flex container
             ),
@@ -173,21 +177,37 @@ def index() -> rx.Component:
          margin="0 auto", # Center container
     ),
 
-
-# --- App Setup ---
+style = {
+    
+    "background_color": "black", # Darker purple
+    "color": "#ffffff",
+    "box_shadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
+    "transition": "background-color 0.3s ease, color 0.3s ease",
+    "hover": {
+        "background_color": "#3a2b4d", # Darker shade on hover
+        "color": "#ffffff",
+    },
+    
+}
 app = rx.App(
     theme=rx.theme(
-        appearance="dark", # Use dark theme
+        appearance="dark",
+        color_scheme="purple",
         accent_color="purple",
-        radius="medium", # Apply consistent border radius
-    )
+        radius="medium",
+        has_background=True,
+    ),
+    style=style
 )
+
+
 
 
 app.add_page(
     index,
     title="DeathClock", # Example title
-    on_load=State.start_background_tasks # Trigger tasks when this page loads
+    on_load=State.start_background_tasks
+     # Trigger tasks when this page loads
 )
 
 # The original TypeError is resolved by returning [State.fetch_weather]
