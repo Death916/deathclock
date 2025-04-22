@@ -1,55 +1,98 @@
+# /home/death916/code/python/deathclock/utils/weather.py
 import os
 import subprocess
 import datetime
+import reflex as rx
+import logging # Optional: Use logging for better error messages
 
-class Weather:
-    def __init__(self):
+# Configure logging (optional but recommended)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Define the target filename consistently
+WEATHER_FILENAME = "weather.jpg"
+# Define the web path expected by the frontend
+WEATHER_WEB_PATH = f"/{WEATHER_FILENAME}" # This should be relative to the assets dir
+
+class Weather(rx.Base):
+    # No __init__ needed here for Pydantic compatibility
+
+    def _get_assets_dir(self) -> str:
+        """Calculates and ensures the assets directory exists within the project."""
         # Get the directory where this script (weather.py) is located
-        self.script_dir = os.path.dirname(os.path.abspath(__file__))
+        # e.g., /home/death916/code/python/deathclock/utils
+        script_dir = os.path.dirname(os.path.abspath(__file__))
 
-        # Construct the absolute path to the 'assets' directory in the project root
-        self.assets_dir = os.path.join(os.path.dirname(os.path.dirname(self.script_dir)), 'assets')
+        # Construct the absolute path to the project root directory
+        # This should be the parent directory of 'utils'
+        # e.g., /home/death916/code/python/deathclock
+        # --- FIX IS HERE ---
+        project_root = os.path.dirname(script_dir)
+        # -----------------
+
+        # Construct the absolute path to the 'assets' directory within the project root
+        # e.g., /home/death916/code/python/deathclock/assets
+        assets_dir = os.path.join(project_root, 'assets')
 
         # Ensure the assets directory exists
-        if not os.path.exists(self.assets_dir):
-            os.makedirs(self.assets_dir)
-    
-    def delete_old_screenshots(self):
-        """
-        Deletes all PNG files in the 'assets' directory that start with 'sacramento_weather_'.
-        """
-        for filename in os.listdir(self.assets_dir):
-            if filename.startswith("sacramento_weather_"):
-                os.remove(os.path.join(self.assets_dir, filename))
+        if not os.path.exists(assets_dir):
+            try:
+                os.makedirs(assets_dir)
+                logging.info(f"Created assets directory: {assets_dir}")
+            except OSError as e:
+                logging.error(f"Failed to create assets directory {assets_dir}: {e}")
+                # If directory creation fails, saving will also likely fail.
+                # Consider raising an exception or returning None early.
+        return assets_dir
 
-    def get_weather_screenshot(self):
+    def delete_old_screenshots(self, assets_dir: str):
+        """Deletes the specific weather file in the given 'assets' directory."""
+        target_file = os.path.join(assets_dir, WEATHER_FILENAME)
+        if os.path.exists(target_file):
+             try:
+                 os.remove(target_file)
+                 logging.info(f"Deleted old weather file: {target_file}")
+             except OSError as e:
+                 logging.error(f"Failed to delete old weather file {target_file}: {e}")
+
+    def get_weather_screenshot(self) -> str | None:
         """
-        Fetches weather information for Sacramento from wttr.in using curl and saves it as a PNG.
-        Returns the path to the saved image.
+        Fetches weather info using curl, saves it to the project's assets dir.
+        Returns the web path (e.g., '/weather.jpg') or None on failure.
         """
+        assets_dir = self._get_assets_dir()
+        # If _get_assets_dir failed (e.g., couldn't create dir), it might be None or invalid.
+        # Adding a check here could be useful, though currently it returns the path anyway.
+        # if not assets_dir or not os.path.isdir(assets_dir):
+        #    logging.error("Assets directory path is invalid or missing.")
+        #    return None
+
+        # Full path to save the file, e.g., /home/death916/code/python/deathclock/assets/weather.jpg
+        screenshot_path = os.path.join(assets_dir, WEATHER_FILENAME)
+
         try:
-            # Create a timestamp for the filename
-            timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            screenshot_filename = "weather.png"
-            screenshot_path = os.path.join(self.assets_dir, screenshot_filename) # save to the proper location
-
-            # Use curl to get the weather data from wttr.in and save it as a PNG.
-            # add the scale #2 to make the png larger
             curl_command = [
                 "curl",
                 "-s",  # Silent mode
-                "v2.wttr.in/Sacramento.png?0pq&scale=.5",  # Fetch weather data for Sacramento
+                "v2.wttr.in/Sacramento.png?0T", # Fetch PNG, no border, no terminal escapes
                 "-o",
-                screenshot_path,
+                screenshot_path, # Save to the correct assets path
             ]
-            self.delete_old_screenshots()
-            subprocess.run(curl_command, check=True)
 
-            return screenshot_path
+            # Delete the old file before creating the new one
+            self.delete_old_screenshots(assets_dir)
+
+            logging.info(f"Running curl command to fetch weather: {' '.join(curl_command)}")
+            process = subprocess.run(curl_command, check=True, capture_output=True, text=True)
+            logging.info(f"Curl command successful. Weather image saved to: {screenshot_path}") # Log correct save path
+
+            # *** Return the WEB PATH, which is relative to the assets dir ***
+            # This part was already correct. Reflex serves the 'assets' folder at the root URL.
+            return WEATHER_WEB_PATH # e.g., "/weather.jpg"
 
         except subprocess.CalledProcessError as e:
-            print(f"Error fetching weather data: {e}")
+            logging.error(f"Curl command failed for path {screenshot_path}: {e}")
+            logging.error(f"Curl stderr: {e.stderr}")
             return None
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            logging.error(f"An unexpected error occurred saving to {screenshot_path}: {e}")
             return None
