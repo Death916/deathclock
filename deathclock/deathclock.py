@@ -9,7 +9,7 @@ from rxconfig import config
 from utils.weather import Weather
 
 # from utils.scores import NBAScores, mlbScores
-# from utils.news import News
+from utils.news import News
 # from utils.alarm import Alarm
 import logging
 
@@ -42,6 +42,7 @@ class State(rx.State):
         try:
            
             self._weather_client = Weather()
+            self._news_client = News()
             logging.info("Weather client initialized successfully.")
         except Exception as e:
             logging.error(f"Failed to initialize Weather client: {e}", exc_info=True)
@@ -58,6 +59,31 @@ class State(rx.State):
         logging.info("Triggering background tasks: Weather")
         # *** FIX: Return a list containing the handler reference ***
         return [State.fetch_weather]
+    
+    @rx.event(background=True)
+    async def fetch_news(self):
+        """Fetches news periodically."""
+        # Placeholder for the actual news fetching logic
+        while True:
+            try:
+                logging.info("Fetching news...")
+                news_items = await self._news_client.get_news() # This now comes from utils/news.py
+                if not news_items:
+                    logging.warning("No news items fetched.")
+                    async with self:
+                        self.news = []
+                        yield  # Update frontend
+                else:
+                    logging.info(f"Fetched {len(news_items)} news items.")
+                    async with self:
+                        self.news = news_items
+                        yield
+               
+                
+            except Exception as e:
+                logging.error(f"Error in fetch_news background task: {e}", exc_info=True)
+            await asyncio.sleep(500)
+
 
     # --- Weather Background Task ---
     @rx.event(background=True)
