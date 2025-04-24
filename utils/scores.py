@@ -1,27 +1,40 @@
+# /home/death916/code/python/deathclock/utils/scores.py
 from nba_api.live.nba.endpoints import scoreboard
 from datetime import datetime, timedelta
 import statsapi
+import reflex as rx
+import logging # Use logging for consistency
 
-class NBAScores:
-    def __init__(self):
-        self._scores = []
-        
-    def get_scores(self):
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+class NBAScores(rx.Base):
+    # Declare attributes at the class level for rx.Base/Pydantic
+    # These aren't strictly necessary if the class is just a utility
+    # providing methods, but it aligns with rx.Base inheritance.
+    # If they were meant to hold state managed by Reflex, they'd be crucial.
+    # For now, we can remove them or keep them empty if needed later.
+    # Let's remove __init__ as it's not needed for this structure.
+
+    # No __init__ needed
+
+    async def get_scores(self): # Make async to match usage in State
+        """Fetches NBA scores and returns them as a list of dicts."""
         try:
             # Get scoreboard data
+            # Consider running blocking IO in a thread pool if it becomes an issue
             board = scoreboard.ScoreBoard()
             data = board.get_dict()
-            
+
             # Check if we have a valid scoreboard response
             if 'scoreboard' not in data:
-                print("No scoreboard data found")
+                logging.warning("No NBA scoreboard data found in response")
                 return []
-                
+
             games = data['scoreboard'].get('games', [])
             if not games:
-                print("No games found in scoreboard")
+                logging.info("No active NBA games found in scoreboard")
                 return []
-            
+
             scores_list = []
             for game in games:
                 try:
@@ -35,62 +48,88 @@ class NBAScores:
                     }
                     scores_list.append(game_data)
                 except KeyError as e:
-                    print(f"Error processing game data: {e}")
-                    continue
-            
-            self._scores = scores_list
-            return self._scores
-            
+                    logging.error(f"Error processing NBA game data: {e} for game: {game.get('gameId', 'N/A')}")
+                    continue # Skip this game
+
+            # No need to store in self._scores if this is just a utility
+            return scores_list
+
         except Exception as e:
-            print(f"Error fetching scores: {e}")
-            return []
+            logging.error(f"Error fetching NBA scores: {e}", exc_info=True)
+            return [] # Return empty list on error
 
-class mlbScores:
-    def __init__(self):
-        self._scores = []
-        self._games = []
+class mlbScores(rx.Base):
+    # Declare attributes at the class level if needed by rx.Base/Pydantic
+    # _scores: list = [] # Not strictly needed for utility methods
+    # _games: list = []  # Not strictly needed for utility methods
 
-        
-    def get_games(self):
+    # No __init__ needed
+
+    async def get_games(self): # Make async
+        """Fetches MLB games data."""
         try:
-            # Get MLB games data
-            games = statsapi.schedule()
-            self._games = games
-            return self._games
+            # statsapi might be blocking, consider running in thread executor for async context
+            # For simplicity now, we call it directly.
+            # If statsapi has async methods, use those. Otherwise, wrap sync calls:
+            # games = await rx.call_blocking(statsapi.schedule)
+            games = statsapi.schedule() # Assuming sync for now
+            return games
         except Exception as e:
-            print(f"Error fetching MLB games: {e}")
+            logging.error(f"Error fetching MLB games: {e}", exc_info=True)
             return []
-        
-    def get_scores(self):
-        games = self.get_games()
+
+    async def get_scores(self): # Make async to match usage in State
+        """Fetches and formats MLB scores."""
+        games = await self.get_games() # Await the async get_games
         scores_list = []
         if not games:
-             print("No mlb games found")
+             logging.info("No MLB games found today.")
              return []
         for game in games:
             try:
+                # Ensure keys exist, provide defaults if necessary
                 game_data = {
-                    'home_team': game['home_name'],
-                    'home_score': game['home_score'],
-                    'away_team': game['away_name'],
-                    'away_score': game['away_score'],
-                    'status': game['status']
+                    'home_team': game.get('home_name', 'N/A'),
+                    'home_score': game.get('home_score', '-'),
+                    'away_team': game.get('away_name', 'N/A'),
+                    'away_score': game.get('away_score', '-'),
+                    'status': game.get('status', 'Scheduled') # Provide default status
                 }
                 scores_list.append(game_data)
             except KeyError as e:
-                print(f"Error processing game data: {e}")
-                continue
+                # This block might be less necessary with .get() above
+                logging.error(f"Error processing MLB game data: {e} for game: {game.get('game_id', 'N/A')}")
+                continue # Skip this game
         return scores_list # RETURN THE LIST
 
+# Keep the __main__ block for testing if desired, but update calls to be async if needed
+# (e.g., using asyncio.run())
 if __name__ == "__main__":
-    scores = NBAScores()
-    results = scores.get_scores()
-    
-    print("\nNBA Scores:")
-    if results:
-        for game in results:
-            print(f"{game['away_team']} {game['away_score']} @ "
-                  f"{game['home_team']} {game['home_score']}  "
-                  f"(Status: {game['status']})")
-    else:
-        print("No games available")
+    import asyncio
+
+    async def test_scores():
+        nba_client = NBAScores()
+        nba_results = await nba_client.get_scores() # await async method
+
+        print("\nNBA Scores:")
+        if nba_results:
+            for game in nba_results:
+                print(f"{game['away_team']} {game['away_score']} @ "
+                      f"{game['home_team']} {game['home_score']}  "
+                      f"(Status: {game['status']})")
+        else:
+            print("No NBA games/scores available")
+
+        mlb_client = mlbScores()
+        mlb_results = await mlb_client.get_scores() # await async method
+
+        print("\nMLB Scores:")
+        if mlb_results:
+            for game in mlb_results:
+                 print(f"{game['away_team']} {game['away_score']} @ "
+                       f"{game['home_team']} {game['home_score']}  "
+                       f"(Status: {game['status']})")
+        else:
+            print("No MLB games/scores available")
+
+    asyncio.run(test_scores())
