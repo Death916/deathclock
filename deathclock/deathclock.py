@@ -39,6 +39,7 @@ class State(rx.State):
     # --- Add type hints for clients ---
     _mlb_client: mlbScores | None = None
     _nba_client: NBAScores | None = None
+    last_sports_update: float = 0.0
     # ----------------------------------
 
     # --- Initialize Utility Client ---
@@ -60,6 +61,7 @@ class State(rx.State):
             self.last_weather_update = "Client Init Error"
             self.mlb_scores = ""
             self.nba_scores = ""
+            self.last_sports_update = 0.0
 
     # --- on_load Handler ---
     async def start_background_tasks(self):
@@ -79,6 +81,12 @@ class State(rx.State):
             try:
                 logging.info("Fetching sports scores...")
                 # Fetch MLB and NBA scores
+                #check if sports has updated in last 5 minutes if so skip
+                if self.last_sports_update and (time.time() - self.last_sports_update) < 300:
+                    logging.info("Sports scores already updated within the last 5 minutes. Skipping fetch.")
+                    await asyncio.sleep(300)
+                    continue
+                
                 mlb_scores = await self._mlb_client.get_scores()
                 logging.info(f"MLB Scores: {mlb_scores}")
                 # Check if MLB scores are empty
@@ -96,10 +104,11 @@ class State(rx.State):
                         self.nba_scores = []
                         yield
 
-                # Update state with fetched scores
+                # Update state with fetched scores 
                 async with self:
                     self.mlb_scores = mlb_scores
                     self.nba_scores = nba_scores
+                    self.last_sports_update = time.time() # Update last sports update time
                     logging.info(f"Fetched {len(mlb_scores)} MLB scores and {len(nba_scores)} NBA scores.")
                     yield  # Update frontend
 
@@ -200,7 +209,6 @@ def index() -> rx.Component:
                     rx.card(
                         rx.box(
                             rx.text("NBA Scores"),
-                            
                                 rx.foreach(
                                     State.nba_scores,
                                     lambda score: rx.vstack(
@@ -212,7 +220,7 @@ def index() -> rx.Component:
                                         spacing="1",
                                         padding="2",
                                     ),
-                                
+
                             ),
                         ),
                     ),
@@ -251,17 +259,22 @@ def index() -> rx.Component:
                                         rx.card(
                                             rx.text(f"{score['away_team']} {score['away_score']} @ "
                                                     f"{score['home_team']} {score['home_score']}  "
-                                                    f"(Status: {score['status']})"),
+                                                    f"(Status: {score['status']})",
+                                            size="1",
+                                            ),
                                         ),
                                         spacing="1",
                                         padding="2",
-                                    ),
+                                        size="1",
+                                        variant="ghost"
                                 
+
+                                    ),
+                           
                             ),
-                             # Placeholder
+                             
                         ),
                     ),
-                    # Original flex settings
                     spacing="3", # Add spacing between cards
                     width="100%",
                     justify="center", # Center cards horizontally
@@ -277,7 +290,7 @@ def index() -> rx.Component:
          max_width="1200px", # Limit width
          margin="0 auto", # Center container
     ),
-
+'''
 style = {
 
     "background_color": "black", # Darker purple
@@ -288,17 +301,18 @@ style = {
         "background_color": "#3a2b4d", # Darker shade on hover
         "color": "#ffffff",
     },
-
 }
+'''
 app = rx.App(
     theme=rx.theme(
         appearance="dark",
         color_scheme="purple",
         accent_color="purple",
         radius="medium",
+        gray_color="mauve",
         has_background=True,
     ),
-    style=style
+    #style=style #using them
 )
 
 
