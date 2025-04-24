@@ -4,6 +4,8 @@ import reflex as rx
 from datetime import datetime, timezone
 import asyncio
 import time
+# --- Import typing for hints ---
+from typing import List, Dict, Any
 from rxconfig import config
 # --- Import your Weather utility ---
 from utils.weather import Weather
@@ -25,20 +27,24 @@ class State(rx.State):
     current_time: str = "" # Note: rx.moment replaces the need for this if used for display
     alarm_time: str = ""
     alarms: list = []
-    news: list = [] # Placeholder
-    nba_scores: list = [] # Placeholder
-    mlb_scores: list = [] # Placeholder
+    # --- Add type hints ---
+    news: List[Dict[str, Any]] = []
+    nba_scores: List[Dict[str, Any]] = []
+    mlb_scores: List[Dict[str, Any]] = []
+    # ----------------------
     _news_client: News | None = None # This will be set in the constructor
     last_weather_update: str = "Never"
     weather_img: str = WEATHER_IMAGE_PATH
     _weather_client: Weather | None = None # This will be set in the constructor
-    _mlb_client: list | None = None # This will be set in the constructor
-    _nba_client: list | None = None # This will be set in the constructor
+    # --- Add type hints for clients ---
+    _mlb_client: mlbScores | None = None
+    _nba_client: NBAScores | None = None
+    # ----------------------------------
 
     # --- Initialize Utility Client ---
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Initialize the weather client
+        # Initialize background clients
         try:
 
             self._weather_client = Weather()
@@ -55,21 +61,18 @@ class State(rx.State):
             self.mlb_scores = ""
             self.nba_scores = ""
 
-
     # --- on_load Handler ---
     async def start_background_tasks(self):
         """Starts the weather background task when the page loads."""
         rx.remove_local_storage("chakra-ui-color-mode") #trying to test themes remove after
         logging.info("Triggering background tasks: Weather")
         # *** FIX: Return a list containing the handler reference ***
-        return [State.fetch_weather, State.fetch_sports] 
-
+        return [State.fetch_weather, State.fetch_sports]
 
     # --- Sports Background Task ---
 
     @rx.event(background=True)
     async def fetch_sports(self):
-        
 
         # Fetches sports scores periodically
         while True:
@@ -113,7 +116,7 @@ class State(rx.State):
             while True:
                 try:
                     logging.info("Fetching news...")
-                    news_items = await self._news_client.get_news() 
+                    news_items = await self._news_client.get_news()
                     if not news_items:
                         logging.warning("No news items fetched.")
                         async with self:
@@ -124,13 +127,14 @@ class State(rx.State):
                         async with self:
                             self.news = news_items
                             yield
-                   
-                    
+
+
                 except Exception as e:
                     logging.error(f"Error in fetch_news background task: {e}", exc_info=True)
                 await asyncio.sleep(500)
-    
-    """
+
+
+                    """
     # --- Weather Background Task ---
     @rx.event(background=True)
     async def fetch_weather(self):
@@ -138,7 +142,7 @@ class State(rx.State):
         # Check if the client initialized correctly
         if not hasattr(self, '_weather_client') or self._weather_client is None:
             logging.warning("Weather client not initialized. Stopping fetch_weather task.")
-            
+
             async with self:
                 self.last_weather_update = "Error: Weather client unavailable"
                 yield
@@ -148,7 +152,7 @@ class State(rx.State):
             try:
                 logging.info("Attempting to fetch weather screenshot...")
                 # Call the method from the initialized client
-                img_web_path = self._weather_client.get_weather_screenshot() 
+                img_web_path = self._weather_client.get_weather_screenshot()
 
                 if img_web_path:
                     async with self:
@@ -159,6 +163,7 @@ class State(rx.State):
                         self.last_weather_update = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
                         logging.info(f"State.weather_img updated to: {self.weather_img}")
                         yield # Update frontend
+
                 else:
                     logging.warning("get_weather_screenshot returned None. State not updated.")
                     # Optionally update status
@@ -174,15 +179,14 @@ class State(rx.State):
 
             await asyncio.sleep(WEATHER_FETCH_INTERVAL)
 
-
 def index() -> rx.Component:
-    
+
     return rx.container(
         rx.theme_panel(default_open=False),
-        
+
         rx.center(
             rx.vstack(
-                
+
                 rx.button(
                     rx.moment(interval=1000, format="HH:mm:ss"),
                     font_size="4xl",
@@ -191,25 +195,39 @@ def index() -> rx.Component:
                     background_color="#6f42c1", # Original color
                  ),
 
-                
+
                 rx.flex(
                     rx.card(
                         rx.box(
-                            rx.text("SPORTS GO HERE"), 
+                            rx.text("NBA Scores"),
+                            
+                                rx.foreach(
+                                    State.nba_scores,
+                                    lambda score: rx.vstack(
+                                        rx.card(
+                                            rx.text(f"{score['away_team']} {score['away_score']} @ "
+                                                    f"{score['home_team']} {score['home_score']}  "
+                                                    f"(Status: {score['status']})"),
+                                        ),
+                                        spacing="1",
+                                        padding="2",
+                                    ),
+                                
+                            ),
                         ),
                     ),
-                   
+
                     rx.card(
                         rx.vstack( # Added vstack for title/image/status
                             rx.heading("Weather", size="4"),
-                            
+
                             rx.image(
-                                
+
                                 src=State.weather_img,
                                 alt="Current weather conditions for Sacramento",
                                 width="100%", # Keep original width setting
                                 height="auto", # Keep original height setting
-                                
+
                                 object_fit="contain", # Adjust fit as needed
                                 border_radius="var(--radius-3)", # Use theme radius
                             ),
@@ -223,10 +241,23 @@ def index() -> rx.Component:
                             spacing="2",
                         )
                     ),
-                    
+
                     rx.card(
                         rx.box(
-                            rx.text("Other sports"),
+                            rx.text("MLB Scores"),
+                            rx.foreach(
+                                    State.mlb_scores,
+                                    lambda score: rx.vstack(
+                                        rx.card(
+                                            rx.text(f"{score['away_team']} {score['away_score']} @ "
+                                                    f"{score['home_team']} {score['home_score']}  "
+                                                    f"(Status: {score['status']})"),
+                                        ),
+                                        spacing="1",
+                                        padding="2",
+                                    ),
+                                
+                            ),
                              # Placeholder
                         ),
                     ),
@@ -236,7 +267,7 @@ def index() -> rx.Component:
                     justify="center", # Center cards horizontally
                     align="stretch", # Stretch cards vertically if needed
                 ),
-                
+
                  align="center",
                  spacing="4", # Spacing between clock and flex container
             ),
@@ -248,7 +279,7 @@ def index() -> rx.Component:
     ),
 
 style = {
-    
+
     "background_color": "black", # Darker purple
     "color": "#ffffff",
     "box_shadow": "0 4px 8px rgba(0, 0, 0, 0.2)",
@@ -257,7 +288,7 @@ style = {
         "background_color": "#3a2b4d", # Darker shade on hover
         "color": "#ffffff",
     },
-    
+
 }
 app = rx.App(
     theme=rx.theme(
