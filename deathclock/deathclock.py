@@ -68,7 +68,6 @@ class State(rx.State):
         """Starts the weather background task when the page loads."""
         rx.remove_local_storage("chakra-ui-color-mode") #trying to test themes remove after
         logging.info("Triggering background tasks: Weather")
-        # *** FIX: Return a list containing the handler reference ***
         return [State.fetch_weather, State.fetch_sports]
 
     # --- Sports Background Task ---
@@ -81,7 +80,6 @@ class State(rx.State):
             try:
                 logging.info("Fetching sports scores...")
                 # Fetch MLB and NBA scores
-                #check if sports has updated in last 5 minutes if so skip
                 if self.last_sports_update and (time.time() - self.last_sports_update) < 300:
                     logging.info("Sports scores already updated within the last 5 minutes. Skipping fetch.")
                     await asyncio.sleep(300)

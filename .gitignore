@@ -10,3 +10,4 @@ chromedriver
 *.pyc
 .pyc
 *.jpg
+*.flox
