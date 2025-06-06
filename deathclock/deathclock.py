@@ -245,7 +245,6 @@ def index() -> rx.Component:
                         )
                     ),
 
-                    # --- Modified MLB Scores Card ---
                     rx.card(
                         rx.box(
                             rx.text("MLB Scores"),
@@ -272,7 +271,6 @@ def index() -> rx.Component:
                             ),
                         ),
                     ),
-                    # --- End of Modified MLB Scores Card ---
 
                     spacing="3",
                     width="100%",
