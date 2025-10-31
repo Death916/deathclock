@@ -8,14 +8,6 @@ import logging # Use logging for consistency
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class NBAScores(rx.Base):
-    # Declare attributes at the class level for rx.Base/Pydantic
-    # These aren't strictly necessary if the class is just a utility
-    # providing methods, but it aligns with rx.Base inheritance.
-    # If they were meant to hold state managed by Reflex, they'd be crucial.
-    # For now, we can remove them or keep them empty if needed later.
-    # Let's remove __init__ as it's not needed for this structure.
-
-    # No __init__ needed
 
     async def get_scores(self): # Make async to match usage in State
         """Fetches NBA scores and returns them as a list of dicts."""
@@ -59,19 +51,10 @@ class NBAScores(rx.Base):
             return [] # Return empty list on error
 
 class mlbScores(rx.Base):
-    # Declare attributes at the class level if needed by rx.Base/Pydantic
-    # _scores: list = [] # Not strictly needed for utility methods
-    # _games: list = []  # Not strictly needed for utility methods
-
-    # No __init__ needed
 
     async def get_games(self): # Make async
         """Fetches MLB games data."""
         try:
-            # statsapi might be blocking, consider running in thread executor for async context
-            # For simplicity now, we call it directly.
-            # If statsapi has async methods, use those. Otherwise, wrap sync calls:
-            # games = await rx.call_blocking(statsapi.schedule)
             games = statsapi.schedule() # Assuming sync for now
             return games
         except Exception as e:
@@ -103,7 +86,6 @@ class mlbScores(rx.Base):
         return scores_list # RETURN THE LIST
 
 # Keep the __main__ block for testing if desired, but update calls to be async if needed
-# (e.g., using asyncio.run())
 if __name__ == "__main__":
     import asyncio
 
