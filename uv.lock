@@ -268,6 +268,7 @@ dependencies = [
     { name = "nba-api" },
     { name = "playwright" },
     { name = "reflex" },
+    { name = "reflex-text-loop" },
     { name = "requests" },
     { name = "rich" },
 ]
@@ -287,6 +288,7 @@ requires-dist = [
     { name = "nba-api", specifier = ">=1.6.1,<2" },
     { name = "playwright", specifier = ">=1.49.1,<2" },
     { name = "reflex", specifier = ">=0.6.8" },
+    { name = "reflex-text-loop", specifier = ">=0.0.1" },
     { name = "requests", specifier = ">=2.31.0,<3" },
     { name = "rich", specifier = ">=13.7.1,<14" },
 ]
@@ -1097,6 +1099,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/37/b7/c129f7398590c73ef74dd521942d31bbf512cecec777ce8c94929642c6db/reflex_hosting_cli-0.1.42.tar.gz", hash = "sha256:929d92df19dc94c92d122e9aa8c05a85055941e2eb8928a0abbee646efbb03d2", size = 30901, upload-time = "2025-04-11T17:28:03.663Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0a/4d/5526f5a21a01b6179e3ebe9abc46dce01d9692ef655e22002a08e10de8b7/reflex_hosting_cli-0.1.42-py3-none-any.whl", hash = "sha256:2742d9eb3576fa001ea2a4971cef1e1db56a08aad619aa035af3b6cc8f80de4c", size = 38668, upload-time = "2025-04-11T17:28:02.296Z" },
+]
+
+[[package]]
+name = "reflex-text-loop"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "reflex" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ac/eb/2bf65bab5474452b374951497f82338abc95569a5451dfade2ba52e05133/reflex_text_loop-0.0.1.tar.gz", hash = "sha256:4be9cb2b626a329f4de04dddc7c2571c1d204b6be2b6cc9eb87ed926c82ee47b", size = 6042, upload-time = "2024-09-13T09:48:59.681Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c2/e6/fc55aec3e78e34d7f226a60719d1e01da8d4a78c2743ec4716af2c74ca0d/reflex_text_loop-0.0.1-py3-none-any.whl", hash = "sha256:37772b301ca87b8195fd37c09e848299bafa8484e104b9c14d5e1182b2cf40b7", size = 6426, upload-time = "2024-09-13T09:48:57.768Z" },
 ]
 
 [[package]]

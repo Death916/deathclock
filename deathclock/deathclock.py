@@ -11,11 +11,11 @@ from typing import Any, Dict, List
 
 import reflex as rx
 
+
 from utils.news import News
 from utils.scores import NBAScores, mlbScores, nflScores
-
-# --- Import your Weather utility ---
 from utils.weather import Weather
+
 
 # --- Constants ---
 WEATHER_IMAGE_PATH = "/weather.jpg"  # Web path in assets folder
@@ -28,12 +28,13 @@ logging.basicConfig(
 class State(rx.State):
     # --- State Variables ---
 
-    current_time: str = (
-        ""  # Note: rx.moment replaces the need for this if used for display
-    )
+    current_time: str = ""
     alarm_time: str = ""
-    alarms: list = []
+    alarms: List = []
     news: List[Dict[str, Any]] = []
+    current_news_index: int = 0
+    news_rotate_interval: int = 10
+    news_text: str = ""
     nba_scores: List[Dict[str, Any]] = []
     mlb_scores: List[Dict[str, Any]] = []
     nfl_scores: List[Dict[str, Any]] = []
@@ -75,7 +76,12 @@ class State(rx.State):
         )  # trying to test themes remove after
         logging.info("Triggering background tasks: Weather")
         # Return a list containing the handler references
-        return [State.fetch_weather, State.fetch_sports]
+        return [
+            State.fetch_weather,
+            State.fetch_sports,
+            State.fetch_news,
+            State.cycle_news,
+        ]
 
     # --- Sports Background Task ---
 
@@ -140,31 +146,46 @@ class State(rx.State):
                 )
             await asyncio.sleep(500)
 
-    """@rx.event(background=True)
-        async def fetch_news(self):
-            # Fetches news periodically
-            # Placeholder for the actual news fetching logic
-            while True:
-                try:
-                    logging.info("Fetching news...")
-                    news_items = await self._news_client.get_news()
-                    if not news_items:
-                        logging.warning("No news items fetched.")
-                        async with self:
-                            self.news = []
-                            yield  # Update frontend
-                    else:
-                        logging.info(f"Fetched {len(news_items)} news items.")
-                        async with self:
-                            self.news = news_items
-                            yield
+    @rx.event(background=True)
+    async def fetch_news(self):
+        while True:
+            try:
+                logging.info("Fetching news...")
+                news_items = await self._news_client.get_news()
+                if not news_items:
+                    logging.warning("No news items fetched.")
+                    async with self:
+                        self.news = []
+                        self.current_news_index = 0
+                        yield
+                else:
+                    logging.info(f"Fetched {len(news_items)} news items.")
+                    async with self:
+                        self.news = news_items
+                        self.current_news_index = 0
+                        yield
 
-                except Exception as e:
-                    logging.error(
-                        f"Error in fetch_news background task: {e}", exc_info=True
-                    )
-                await asyncio.sleep(500)
-"""
+            except Exception as e:
+                logging.error(
+                    f"Error in fetch_news background task: {e}", exc_info=True
+                )
+            await asyncio.sleep(500)
+
+    @rx.event(background=True)
+    async def cycle_news(self):
+        while True:
+            try:
+                if self.news:
+                    async with self:
+                        self.current_news_index = (self.current_news_index + 1) % len(
+                            self.news
+                        )
+                        yield
+            except Exception as e:
+                logging.error(
+                    f"Error in cycle_news background task: {e}", exc_info=True
+                )
+            await asyncio.sleep(self.news_rotate_interval)
 
     # --- Weather Background Task ---
     @rx.event(background=True)
@@ -350,6 +371,36 @@ def index() -> rx.Component:
         background_color="#6f42c1",
     )
 
+    news_card = rx.card(
+        rx.box(
+            rx.text("News Headlines"),
+            rx.center(
+                rx.cond(
+                    State.news,
+                    rx.text(
+                        State.news[State.current_news_index]["title"],
+                        font_size="lg",
+                        color="gray.500",
+                        no_of_lines=1,
+                        white_space="nowrap",
+                        overflow="hidden",
+                        text_overflow="ellipsis",
+                    ),
+                    rx.text(
+                        "No news available",
+                        font_size="lg",
+                        color="gray.500",
+                    ),
+                ),
+                width="100%",
+                min_height="3.25rem",
+            ),
+            padding="4",
+        ),
+        variant="surface",
+        width="100%",
+    )
+
     # Compose the page
     page = rx.container(  # pyright: ignore[reportReturnType]
         rx.theme_panel(default_open=False),
@@ -357,6 +408,7 @@ def index() -> rx.Component:
             rx.vstack(
                 clock_button,
                 main_flex,
+                news_card,
                 align="center",
                 spacing="4",
             )
