@@ -12,7 +12,7 @@ from typing import Any, Dict, List
 import reflex as rx
 
 from utils.news import News
-from utils.scores import NBAScores, mlbScores
+from utils.scores import NBAScores, mlbScores, nflScores
 
 # --- Import your Weather utility ---
 from utils.weather import Weather
@@ -43,6 +43,7 @@ class State(rx.State):
     _weather_client: Weather | None = None  # This will be set in the constructor
     _mlb_client: mlbScores | None = None
     _nba_client: NBAScores | None = None
+    _nfl_client: nflScores | None = None
     last_sports_update: float = 0.0
 
     # --- Initialize Utility Client ---
@@ -54,6 +55,7 @@ class State(rx.State):
             self._news_client = News()
             self._mlb_client = mlbScores()
             self._nba_client = NBAScores()
+            self._nfl_client = nflScores()
             logging.info("Weather client initialized successfully.")
         except Exception as e:
             logging.error(f"Failed to initialize Weather client: {e}", exc_info=True)
@@ -111,16 +113,24 @@ class State(rx.State):
                     async with self:
                         self.nba_scores = []
                         yield
-
+                nfl_scores = await self._nfl_client.get_scores()
+                logging.info(f"NFL Scores: {nfl_scores}")
+                # Check if NFL scores are empty
+                if not nfl_scores:
+                    logging.warning("No NFL scores fetched.")
+                    async with self:
+                        self.nfl_scores = []
+                        yield
                 # Update state with fetched scores
                 async with self:
                     self.mlb_scores = mlb_scores
                     self.nba_scores = nba_scores
+                    self.nfl_scores = nfl_scores
                     self.last_sports_update = (
                         time.time()
                     )  # Update last sports update time
                     logging.info(
-                        f"Fetched {len(mlb_scores)} MLB scores and {len(nba_scores)} NBA scores."
+                        f"Fetched {len(mlb_scores)} MLB scores and {len(nba_scores)} NBA scores and {len(nfl_scores)} NFL scores."
                     )
                     yield  # Update frontend
 
@@ -130,9 +140,7 @@ class State(rx.State):
                 )
             await asyncio.sleep(500)
 
-        # (Commented out news fetcher)
-
-        @rx.event(background=True)
+    """@rx.event(background=True)
         async def fetch_news(self):
             # Fetches news periodically
             # Placeholder for the actual news fetching logic
@@ -156,6 +164,7 @@ class State(rx.State):
                         f"Error in fetch_news background task: {e}", exc_info=True
                     )
                 await asyncio.sleep(500)
+"""
 
     # --- Weather Background Task ---
     @rx.event(background=True)
@@ -180,9 +189,7 @@ class State(rx.State):
 
                 if img_web_path:
                     async with self:
-                        timestamp = int(
-                            time.time()
-                        )  # Unused timestamp, kept as per instruction
+                        timestamp = int(time.time())
                         self.weather_img = f"{img_web_path}"
                         self.last_weather_update = datetime.now(timezone.utc).strftime(
                             "%Y-%m-%d %H:%M:%S UTC"
@@ -324,8 +331,10 @@ def index() -> rx.Component:
     main_flex = rx.flex(
         nba_card,
         weather_card,
-        mlb_card,
-        nfl_card,
+        rx.vstack(
+            mlb_card,
+            nfl_card,
+        ),
         spacing="3",
         width="100%",
         justify="center",
