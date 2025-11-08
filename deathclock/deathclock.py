@@ -449,6 +449,6 @@ app = rx.App(
 
 app.add_page(
     index,
-    title="DeathClock",  # Example title
+    title="DeathClock",
     on_load=State.start_background_tasks,  # Trigger tasks when this page loads
 )
