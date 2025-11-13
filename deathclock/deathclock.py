@@ -242,22 +242,29 @@ class State(rx.State):
 
 def index() -> rx.Component:
     # Build NBA scores list (safe access with .get where appropriate)
-    nba_scores_list = rx.vstack(
-        rx.foreach(
-            State.nba_scores,
-            lambda score: rx.card(
-                rx.text(
-                    f"{score.get('away_team', '?')} {score.get('away_score', '-')} @ "
-                    f"{score.get('home_team', '?')} {score.get('home_score', '-')}  "
-                    f"(Status: {score.get('status', '?')})"
-                )
+    nba_scores_list = rx.box(
+        rx.vstack(
+            rx.foreach(
+                State.nba_scores,
+                lambda score: rx.card(
+                    rx.text(
+                        f"{score.get('away_team', '?')} {score.get('away_score', '-')} @ "
+                        f"{score.get('home_team', '?')} {score.get('home_score', '-')}  "
+                        f"(Status: {score.get('status', '?')})",
+                        size="1",
+                    ),
+                    width="100%",
+                    padding="0.5",
+                    variant="surface",
+                ),
             ),
+            spacing="1",
+            align_items="stretch",
+            width="auto",
         ),
-        spacing="1",
-        padding="2",
-        align_items="stretch",
-        width="100%",
-        wrap="wrap",
+        max_height="60vh",
+        overflow_y="auto",
+        padding="0.25rem",
     )
 
     nba_card = rx.card(
@@ -265,7 +272,8 @@ def index() -> rx.Component:
             rx.text("NBA Scores"),
             nba_scores_list,
         ),
-        height="70vh",  # shrinking the height of the card
+        width="auto",
+        padding="1",
     )
 
     # Weather card
@@ -276,15 +284,17 @@ def index() -> rx.Component:
                 src=State.weather_img,
                 alt="Current weather conditions for Sacramento",
                 width="100%",
-                height="auto",
+                height="60vh",
                 object_fit="contain",
                 border_radius="var(--radius-3)",
+                padding_top="0",
+                padding_bottom="0",
             ),
             rx.text(
                 f"Last Update: {State.last_weather_update}",
                 size="1",
                 color_scheme="gray",
-                padding_top="0.5em",
+                padding_top="0",
             ),
             align="center",
             spacing="2",
@@ -356,7 +366,7 @@ def index() -> rx.Component:
             mlb_card,
             nfl_card,
         ),
-        spacing="3",
+        spacing="2",
         width="100%",
         justify="center",
         align="baseline",
@@ -373,7 +383,9 @@ def index() -> rx.Component:
 
     news_card = rx.card(
         rx.box(
-            rx.text("News Headlines"),
+            rx.center(
+                rx.text("News Headlines"),
+            ),
             rx.center(
                 rx.cond(
                     State.news,
@@ -395,7 +407,7 @@ def index() -> rx.Component:
                 width="100%",
                 min_height="3.25rem",
             ),
-            padding="4",
+            padding="2",
         ),
         variant="surface",
         width="100%",
@@ -410,7 +422,7 @@ def index() -> rx.Component:
                 main_flex,
                 news_card,
                 align="center",
-                spacing="4",
+                spacing="2",
             )
         ),
         padding="2rem",
