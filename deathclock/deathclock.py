@@ -11,11 +11,9 @@ from typing import Any, Dict, List
 
 import reflex as rx
 
-
 from utils.news import News
 from utils.scores import NBAScores, mlbScores, nflScores
 from utils.weather import Weather
-
 
 # --- Constants ---
 WEATHER_IMAGE_PATH = "/weather.jpg"  # Web path in assets folder
@@ -259,13 +257,15 @@ def index() -> rx.Component:
         padding="2",
         align_items="stretch",
         width="100%",
+        wrap="wrap",
     )
 
     nba_card = rx.card(
         rx.box(
             rx.text("NBA Scores"),
             nba_scores_list,
-        )
+        ),
+        height="70vh",  # shrinking the height of the card
     )
 
     # Weather card
@@ -359,7 +359,7 @@ def index() -> rx.Component:
         spacing="3",
         width="100%",
         justify="center",
-        align="stretch",
+        align="baseline",
     )
 
     # Top clock button
@@ -404,7 +404,7 @@ def index() -> rx.Component:
     # Compose the page
     page = rx.container(  # pyright: ignore[reportReturnType]
         rx.theme_panel(default_open=False),
-        rx.center(
+        rx.flex(
             rx.vstack(
                 clock_button,
                 main_flex,
@@ -416,6 +416,7 @@ def index() -> rx.Component:
         padding="2rem",
         max_width="1200px",
         margin="0 auto",
+        flex_direction="column",
     )
 
     return page
