@@ -426,7 +426,8 @@ def index() -> rx.Component:
             )
         ),
         padding="2rem",
-        max_width="1200px",
+        max_width="800px",
+        max_height="300px",
         margin="0 auto",
         flex_direction="column",
     )
