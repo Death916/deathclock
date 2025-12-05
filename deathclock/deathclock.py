@@ -424,8 +424,10 @@ def index() -> rx.Component:
         rx.theme_panel(default_open=False),
         rx.flex(
             rx.vstack(
-                State._radio_client.radio_card(),
-                clock_button,
+                rx.hstack(
+                    State._radio_client.radio_card(),
+                    clock_button,
+                ),
                 main_flex,
                 news_card,
                 align="center",

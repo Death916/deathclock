@@ -9,7 +9,17 @@ class Radio(rx.Base):
         return rx.button("Radio", on_click=self.open_radio_button)
 
     def radio_card(self):
-        return rx.card(title="Radio")
+        radio_card = rx.card(
+            rx.vstack(
+                rx.heading("Radio"),
+                rx.text("Current Station"),
+                #  rx.text("Volume"),
+                # rx.button("Play"),
+                # rx.button("Pause"),
+                # rx.button("Stop"),
+            ),
+        )
+        return radio_card
 
 
 class Radio_Control:
