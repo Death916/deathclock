@@ -12,6 +12,7 @@ from typing import Any, Dict, List
 import reflex as rx
 
 from utils.news import News
+from utils.radio import Radio
 from utils.scores import NBAScores, mlbScores, nflScores
 from utils.weather import Weather
 
@@ -36,6 +37,8 @@ class State(rx.State):
     nba_scores: List[Dict[str, Any]] = []
     mlb_scores: List[Dict[str, Any]] = []
     nfl_scores: List[Dict[str, Any]] = []
+    radio_stations: List[str] = []
+    current_radio_station: str = ""
     _news_client: News | None = None  # This will be set in the constructor
     last_weather_update: str = "Never"
     weather_img: str = WEATHER_IMAGE_PATH
@@ -43,6 +46,7 @@ class State(rx.State):
     _mlb_client: mlbScores | None = None
     _nba_client: NBAScores | None = None
     _nfl_client: nflScores | None = None
+    _radio_client: Radio = Radio()
     last_sports_update: float = 0.0
 
     # --- Initialize Utility Client ---
@@ -55,6 +59,8 @@ class State(rx.State):
             self._mlb_client = mlbScores()
             self._nba_client = NBAScores()
             self._nfl_client = nflScores()
+            self._radio_client = Radio()
+
             logging.info("Weather client initialized successfully.")
         except Exception as e:
             logging.error(f"Failed to initialize Weather client: {e}", exc_info=True)
@@ -418,6 +424,7 @@ def index() -> rx.Component:
         rx.theme_panel(default_open=False),
         rx.flex(
             rx.vstack(
+                State._radio_client.radio_card(),
                 clock_button,
                 main_flex,
                 news_card,
