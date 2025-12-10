@@ -3,20 +3,28 @@
 
 import reflex as rx
 
+CURRENT_STATION = "90.9 FM"
+PLAYING = False
+
 
 class Radio(rx.Base):
     def open_radio_button(self):
         return rx.button("Radio", on_click=self.open_radio_button)
 
     def radio_card(self):
-        radio_card = rx.card(
-            rx.vstack(
-                rx.heading("Radio"),
-                rx.text("Current Station"),
-                #  rx.text("Volume"),
-                # rx.button("Play"),
-                # rx.button("Pause"),
-                # rx.button("Stop"),
+        radio_card = rx.popover.root(
+            rx.popover.trigger(rx.button("Radio")),
+            rx.popover.content(
+                rx.vstack(
+                    rx.heading("Current Station"),
+                    rx.text(CURRENT_STATION),
+                    # rx.text("Volume"),
+                    # rx.button("Play"
+                    # on_click=Radio_Control.play_radio),
+                    # ),
+                    # rx.button("Pause"),
+                    # rx.button("Stop"),
+                ),
             ),
         )
         return radio_card
@@ -24,4 +32,7 @@ class Radio(rx.Base):
 
 class Radio_Control:
     def __init__(self):
+        pass
+
+    def play_radio(self):
         pass

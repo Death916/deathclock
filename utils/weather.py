@@ -6,7 +6,6 @@ import subprocess
 
 import reflex as rx
 
-# Configure logging (optional but recommended)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -18,12 +17,9 @@ WEATHER_WEB_PATH = f"/{WEATHER_FILENAME}"  # This should be relative to the asse
 
 
 class Weather(rx.Base):
-    # No __init__ needed here for Pydantic compatibility
-
     def _get_assets_dir(self) -> str:
         """Calculates and ensures the assets directory exists within the project."""
-        # Get the directory where this script (weather.py) is located
-        # e.g., /home/death916/code/python/deathclock/utils
+
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
         project_root = os.path.dirname(script_dir)
@@ -75,7 +71,7 @@ class Weather(rx.Base):
                 f"Curl command successful. Weather image saved to: {screenshot_path}"
             )  # Log correct save path
 
-            return WEATHER_WEB_PATH  # e.g., "/weather.jpg"
+            return WEATHER_WEB_PATH
 
         except subprocess.CalledProcessError as e:
             logging.error(f"Curl command failed for path {screenshot_path}: {e}")

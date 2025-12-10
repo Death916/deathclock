@@ -1,10 +1,11 @@
-import feedparser
 import asyncio
-import aiofiles
 import random
-from time import localtime, strftime
 import socket
+from time import localtime, strftime
+
+import aiofiles
 import aiohttp
+import feedparser
 
 
 def print_time():
@@ -13,11 +14,11 @@ def print_time():
 
 class News:
     def __init__(self):
-        socket.setdefaulttimeout(10)  # Set default timeout for socket operations
+        socket.setdefaulttimeout(10)
 
     async def _fetch_feed(self, session, feed):
         """Fetches and parses a single feed asynchronously."""
-        max_entries = 10  # Maximum number of entries to fetch from each feed
+        max_entries = 10
 
         try:
             # Add timeout to the request
@@ -38,7 +39,7 @@ class News:
                 # Limit the number of entries parsed
                 for i, post in enumerate(d.entries):
                     if i >= max_entries:
-                        break  # Stop parsing if we've reached the limit
+                        break
 
                     feed_entries.append(
                         {

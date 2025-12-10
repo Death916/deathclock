@@ -1,10 +1,10 @@
 # /home/death916/code/python/deathclock/utils/scores.py
-from nba_api.live.nba.endpoints import scoreboard
-from datetime import datetime, timedelta
-import statsapi
-import reflex as rx
 import logging  # Use logging for consistency
+from datetime import datetime, timedelta
 
+import reflex as rx
+import statsapi
+from nba_api.live.nba.endpoints import scoreboard
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -20,7 +20,6 @@ class NBAScores(rx.Base):
             board = scoreboard.ScoreBoard()
             data = board.get_dict()
 
-            # Check if we have a valid scoreboard response
             if "scoreboard" not in data:
                 logging.warning("No NBA scoreboard data found in response")
                 return []
@@ -74,7 +73,6 @@ class mlbScores(rx.Base):
             return []
         for game in games:
             try:
-                # Ensure keys exist, provide defaults if necessary
                 game_data = {
                     "home_team": game.get("home_name", "N/A"),
                     "home_score": game.get("home_score", "-"),
@@ -84,12 +82,11 @@ class mlbScores(rx.Base):
                 }
                 scores_list.append(game_data)
             except KeyError as e:
-                # This block might be less necessary with .get() above
                 logging.error(
                     f"Error processing MLB game data: {e} for game: {game.get('game_id', 'N/A')}"
                 )
-                continue  # Skip this game
-        return scores_list  # RETURN THE LIST
+                continue
+        return scores_list
 
 
 class nflScores:

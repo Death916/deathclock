@@ -5,8 +5,6 @@ import asyncio
 import logging
 import time
 from datetime import datetime, timezone
-
-# --- Import typing for hints ---
 from typing import Any, Dict, List
 
 import reflex as rx
@@ -16,7 +14,6 @@ from utils.radio import Radio
 from utils.scores import NBAScores, mlbScores, nflScores
 from utils.weather import Weather
 
-# --- Constants ---
 WEATHER_IMAGE_PATH = "/weather.jpg"  # Web path in assets folder
 WEATHER_FETCH_INTERVAL = 360
 logging.basicConfig(
@@ -86,8 +83,6 @@ class State(rx.State):
             State.fetch_news,
             State.cycle_news,
         ]
-
-    # --- Sports Background Task ---
 
     @rx.event(background=True)
     async def fetch_sports(self):
