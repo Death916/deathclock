@@ -16,6 +16,7 @@ dependencies = [
     "reflex>=0.6.8",
     "aiohttp>=3.11.18",
     "reflex-text-loop>=0.0.1",
+    "pigpio>=1.78",
 ]
 
 [dependency-groups]

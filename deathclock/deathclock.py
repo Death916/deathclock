@@ -9,6 +9,8 @@ from typing import Any, Dict, List
 
 import reflex as rx
 
+_background_tasks_registered = False
+
 from utils.news import News
 from utils.radio import Radio
 from utils.scores import NBAScores, mlbScores, nflScores
@@ -45,6 +47,7 @@ class State(rx.State):
     _nfl_client: nflScores | None = None
     _radio_client: Radio = Radio()
     last_sports_update: float = 0.0
+    last_weather_fetch_time: float = 0.0
 
     # --- Initialize Utility Client ---
     def __init__(self, *args, **kwargs):
@@ -65,18 +68,22 @@ class State(rx.State):
             # Set error state if needed
             self.weather_img = "/error_placeholder.png"
             self.last_weather_update = "Client Init Error"
-            self.mlb_scores = ""
-            self.nba_scores = ""
+            self.mlb_scores = []
+            self.nba_scores = []
             self.last_sports_update = 0.0
 
     # --- on_load Handler ---
     async def start_background_tasks(self):
+        global _background_tasks_registered
         """Starts the weather background task when the page loads."""
-        rx.remove_local_storage(
-            "chakra-ui-color-mode"
-        )  # trying to test themes remove after
+        rx.remove_local_storage("chakra-ui-color-mode")
+        if _background_tasks_registered:
+            logging.info(
+                "Background tasks already registered in this process; skipping."
+            )
+            return []
+        _background_tasks_registered = True
         logging.info("Triggering background tasks: Weather")
-        # Return a list containing the handler references
         return [
             State.fetch_weather,
             State.fetch_sports,
@@ -190,7 +197,6 @@ class State(rx.State):
     @rx.event(background=True)
     async def fetch_weather(self):
         """Fetches the weather screenshot periodically."""
-        # Check if the client initialized correctly
         if not hasattr(self, "_weather_client") or self._weather_client is None:
             logging.warning(
                 "Weather client not initialized. Stopping fetch_weather task."
@@ -199,31 +205,40 @@ class State(rx.State):
             async with self:
                 self.last_weather_update = "Error: Weather client unavailable"
                 yield
-            return  # Exit the task permanently if client init failed
+            return
 
         while True:
             try:
+                if (
+                    self.last_weather_fetch_time
+                    and (time.time() - self.last_weather_fetch_time)
+                    < WEATHER_FETCH_INTERVAL
+                ):
+                    logging.info(
+                        "Recent weather fetch detected; skipping immediate fetch to avoid thrashing."
+                    )
+                    await asyncio.sleep(WEATHER_FETCH_INTERVAL)
+                    continue
+
                 logging.info("Attempting to fetch weather screenshot...")
-                # Call the method from the initialized client
                 img_web_path = self._weather_client.get_weather_screenshot()
 
                 if img_web_path:
                     async with self:
-                        timestamp = int(time.time())
                         self.weather_img = f"{img_web_path}"
                         self.last_weather_update = datetime.now(timezone.utc).strftime(
                             "%Y-%m-%d %H:%M:%S UTC"
                         )
+                        self.last_weather_fetch_time = time.time()
                         logging.info(
                             f"State.weather_img updated to: {self.weather_img}"
                         )
-                        yield  # Update frontend
+                        yield
 
                 else:
                     logging.warning(
                         "get_weather_screenshot returned None. State not updated."
                     )
-                    # Optionally update status
                     async with self:
                         self.last_weather_update = f"Failed fetch @ {datetime.now(timezone.utc).strftime('%H:%M:%S UTC')}"
                         yield
@@ -232,12 +247,13 @@ class State(rx.State):
                 logging.error(
                     f"Error in fetch_weather background task: {e}", exc_info=True
                 )
-                async with self:  # Update state to show error
+                async with self:
                     self.last_weather_update = (
                         f"Error @ {datetime.now(timezone.utc).strftime('%H:%M:%S UTC')}"
                     )
                     yield
-
+            logging.info("Weather fetch completed")
+            logging.info("Sleeping for next fetch")
             await asyncio.sleep(WEATHER_FETCH_INTERVAL)
 
 

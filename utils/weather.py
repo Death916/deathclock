@@ -11,7 +11,7 @@ logging.basicConfig(
 )
 
 # Define the target filename consistently
-WEATHER_FILENAME = "weather.jpg"
+WEATHER_FILENAME = "weather.png"
 # Define the web path expected by the frontend
 WEATHER_WEB_PATH = f"/{WEATHER_FILENAME}"  # This should be relative to the assets dir
 
@@ -51,28 +51,26 @@ class Weather(rx.Base):
         """
         assets_dir = self._get_assets_dir()
         screenshot_path = os.path.join(assets_dir, WEATHER_FILENAME)
-
-        try:
-            curl_command = [
-                "curl",
-                "-s",  # Silent mode
-                "v2.wttr.in/Sacramento.png?0u",  # Fetch PNG, no border, no terminal escapes
-                "-o",
-                screenshot_path,  # Save to the correct assets path
-            ]
-
-            # Delete the old file before creating the new one
+        # Delete the old file before creating the new one
+        if os.path.exists(screenshot_path):
             self.delete_old_screenshots(assets_dir)
 
-            logging.info(
-                f"Running curl command to fetch weather: {' '.join(curl_command)}"
-            )
+        curl_command = [
+            "curl",
+            "-s",  # Silent mode
+            "v2.wttr.in/Sacramento.png?u0",  # Fetch PNG, no border, no terminal escapes
+            "-o",
+            screenshot_path,  # Save to the correct assets path
+        ]
+
+        logging.info(f"Running curl command to fetch weather: {' '.join(curl_command)}")
+
+        try:
+            subprocess.run(curl_command)
             logging.info(
                 f"Curl command successful. Weather image saved to: {screenshot_path}"
-            )  # Log correct save path
-
+            )
             return WEATHER_WEB_PATH
-
         except subprocess.CalledProcessError as e:
             logging.error(f"Curl command failed for path {screenshot_path}: {e}")
             logging.error(f"Curl stderr: {e.stderr}")

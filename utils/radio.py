@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 # connect to rda5807 chip and control it and display the current station
-
+# TODO: reference rd library in readme
 import reflex as rx
+
+# from utils.python_rd5807m.radio import Radio as Radio_lib
 
 CURRENT_STATION = "90.9 FM"
 PLAYING = False
@@ -31,8 +33,15 @@ class Radio(rx.Base):
 
 
 class Radio_Control:
-    def __init__(self):
-        pass
+    def init_radio(self):
+        self.radio = Radio_lib()
+        self.radio.initialize()
 
     def play_radio(self):
         pass
+
+
+## for testing chip
+# if __name__ == "__main__":
+#   radio = Radio_Control()
+#  radio.play_radio()
