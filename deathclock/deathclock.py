@@ -219,8 +219,10 @@ class State(rx.State):
                     )
                     await asyncio.sleep(WEATHER_FETCH_INTERVAL)
                     continue
-
+                logging.info("deleting existing weather screenshot...")
+                self._weather_client.delete_old_screenshots(self.weather_img)
                 logging.info("Attempting to fetch weather screenshot...")
+
                 img_web_path = self._weather_client.get_weather_screenshot()
 
                 if img_web_path:
@@ -407,6 +409,8 @@ def index() -> rx.Component:
                 rx.cond(
                     State.news,
                     rx.text(
+                        rx.heading(State.news[State.current_news_index]["source"]),
+                        rx.spacer(),
                         State.news[State.current_news_index]["title"],
                         rx.spacer(),
                         State.news[State.current_news_index]["publish_date"],
