@@ -408,6 +408,8 @@ def index() -> rx.Component:
                     State.news,
                     rx.text(
                         State.news[State.current_news_index]["title"],
+                        rx.spacer(),
+                        State.news[State.current_news_index]["publish_date"],
                         font_size="lg",
                         color="gray.500",
                         no_of_lines=1,
