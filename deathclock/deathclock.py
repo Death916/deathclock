@@ -48,6 +48,7 @@ class State(rx.State):
     _radio_client: Radio = Radio()
     last_sports_update: float = 0.0
     last_weather_fetch_time: float = 0.0
+    last_weather_image_path: str = ""
 
     # --- Initialize Utility Client ---
     def __init__(self, *args, **kwargs):
@@ -183,9 +184,9 @@ class State(rx.State):
             try:
                 if self.news:
                     async with self:
-                        self.current_news_index = (self.current_news_index + 1) % len(
-                            self.news
-                        )
+                        self.current_news_index = self.current_news_index + 1
+                        if self.current_news_index >= len(self.news):
+                            self.current_news_index = 0
                         yield
             except Exception as e:
                 logging.error(
@@ -219,8 +220,7 @@ class State(rx.State):
                     )
                     await asyncio.sleep(WEATHER_FETCH_INTERVAL)
                     continue
-                logging.info("deleting existing weather screenshot...")
-                self._weather_client.delete_old_screenshots(self.weather_img)
+
                 logging.info("Attempting to fetch weather screenshot...")
 
                 img_web_path = self._weather_client.get_weather_screenshot()
@@ -232,6 +232,7 @@ class State(rx.State):
                             "%Y-%m-%d %H:%M:%S UTC"
                         )
                         self.last_weather_fetch_time = time.time()
+
                         logging.info(
                             f"State.weather_img updated to: {self.weather_img}"
                         )
@@ -257,6 +258,7 @@ class State(rx.State):
             logging.info("Weather fetch completed")
             logging.info("Sleeping for next fetch")
             await asyncio.sleep(WEATHER_FETCH_INTERVAL)
+            2
 
 
 def index() -> rx.Component:
