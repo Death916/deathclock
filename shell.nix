@@ -16,6 +16,6 @@ pkgs.mkShell {
     # export PATH="${pkgs.bun}/bin:$PATH"
     # export BUN_INSTALL="${pkgs.bun}/bin/bun"
     export REFLEX_USE_SYSTEM_BUN=True
-    echo venv activated and bun version set
+    echo venv activated and bun versions set
   '';
 }

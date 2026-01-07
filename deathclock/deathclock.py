@@ -1,7 +1,7 @@
 # deathclock.py
 import asyncio
 
-# from utils.alarm import Alarm # Commented out import
+# from utils.alarm import Alarm
 import logging
 import time
 from datetime import datetime, timezone
@@ -9,17 +9,15 @@ from typing import Any, Dict, List
 
 import reflex as rx
 
-_background_tasks_registered = False
-
 from utils.news import News
-from utils.radio import Radio
+from utils.radio import Radio_UI
 from utils.scores import NBAScores, mlbScores, nflScores
 from utils.weather import Weather
 
 WEATHER_IMAGE_PATH = "/weather.jpg"  # Web path in assets folder
 WEATHER_FETCH_INTERVAL = 360
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
@@ -38,14 +36,15 @@ class State(rx.State):
     nfl_scores: List[Dict[str, Any]] = []
     radio_stations: List[str] = []
     current_radio_station: str = ""
-    _news_client: News | None = None  # This will be set in the constructor
+    _news_client: News | None = None
     last_weather_update: str = "Never"
     weather_img: str = WEATHER_IMAGE_PATH
-    _weather_client: Weather | None = None  # This will be set in the constructor
+    _weather_client: Weather | None = None
     _mlb_client: mlbScores | None = None
     _nba_client: NBAScores | None = None
     _nfl_client: nflScores | None = None
-    _radio_client: Radio = Radio()
+    _radio_client_ui: Radio_UI = Radio_UI()
+    # _radio_client_control: Radio_Control = Radio_Control()
     last_sports_update: float = 0.0
     last_weather_fetch_time: float = 0.0
     last_weather_image_path: str = ""
@@ -60,7 +59,7 @@ class State(rx.State):
             self._mlb_client = mlbScores()
             self._nba_client = NBAScores()
             self._nfl_client = nflScores()
-            self._radio_client = Radio()
+            self._radio_client_ui = Radio_UI()
 
             logging.info("Weather client initialized successfully.")
         except Exception as e:
@@ -73,18 +72,14 @@ class State(rx.State):
             self.nba_scores = []
             self.last_sports_update = 0.0
 
-    # --- on_load Handler ---
+        # --- on_load Handler ---
+
     async def start_background_tasks(self):
-        global _background_tasks_registered
-        """Starts the weather background task when the page loads."""
+        """Starts background tasks when the page loads."""
         rx.remove_local_storage("chakra-ui-color-mode")
-        if _background_tasks_registered:
-            logging.info(
-                "Background tasks already registered in this process; skipping."
-            )
-            return []
-        _background_tasks_registered = True
-        logging.info("Triggering background tasks: Weather")
+
+        logging.info("Triggering background tasks for this session")
+        # Always return the tasks so they start for this specific user/tab
         return [
             State.fetch_weather,
             State.fetch_sports,
@@ -258,7 +253,6 @@ class State(rx.State):
             logging.info("Weather fetch completed")
             logging.info("Sleeping for next fetch")
             await asyncio.sleep(WEATHER_FETCH_INTERVAL)
-            2
 
 
 def index() -> rx.Component:
@@ -444,7 +438,7 @@ def index() -> rx.Component:
         rx.flex(
             rx.vstack(
                 rx.hstack(
-                    State._radio_client.radio_card(),
+                    State._radio_client_ui.radio_card(),
                     clock_button,
                 ),
                 main_flex,

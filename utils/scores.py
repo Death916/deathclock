@@ -1,6 +1,6 @@
 # /home/death916/code/python/deathclock/utils/scores.py
-import logging  # Use logging for consistency
-from datetime import datetime, timedelta
+import logging
+from datetime import datetime
 
 import reflex as rx
 import statsapi
