@@ -12,6 +12,7 @@ HARDWARE = True
 
 class Radio_UI:
     def __init__(self):
+        self.station = CURRENT_STATION
         if DEBUG:
             self.device = None
         else:
@@ -19,6 +20,51 @@ class Radio_UI:
 
     def open_radio_button(self):
         return rx.button("Radio", on_click=self.open_radio_button)
+
+    def play_button(self):
+        if DEBUG:
+            return rx.button("Play")
+        else:
+            return rx.button("Play", on_click=self.device.play_radio)
+
+    def stop_button(self):
+        if DEBUG:
+            return rx.button("Stop")
+        else:
+            return rx.button("Stop", on_click=self.device.stop_radio)
+
+    def volume_slider(self):
+        if DEBUG:
+            return rx.slider(
+                min_=0,
+                max_=10,
+                step=1,
+            )
+        else:
+            return rx.slider(
+                min_=0,
+                max_=10,
+                step=1,
+                value=self.device.volume,
+                on_change=self.device.set_volume,
+            )
+
+    def set_station(self, station):
+        self.station = station
+
+    def station_input(self):
+        if DEBUG:
+            return rx.input(
+                placeholder="Enter station",
+                # set current station to input value
+                value=self.station,
+                on_change=self.set_station,
+            )
+        else:
+            return rx.input(
+                placeholder="Enter station",
+                on_change=self.device.set_station,
+            )
 
     def radio_card(self):
         """
@@ -32,11 +78,11 @@ class Radio_UI:
                 rx.vstack(
                     rx.heading("Current Station"),
                     rx.text(CURRENT_STATION),
-                    # rx.text("Volume"),
-                    # rx.button("Play", on_click=self.device.play_radio),
+                    rx.hstack(
+                        self.play_button(), self.stop_button(), self.station_input()
+                    ),
+                    self.volume_slider(),
                 ),
-                # rx.button("Pause"),
-                # rx.button("Stop"),
             ),
         )
 
