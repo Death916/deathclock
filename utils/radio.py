@@ -87,7 +87,7 @@ class Radio_UI:
         )
 
 
-class Radio_Control:
+class Radio_Control(rx.State):
     """
     Radio Control Class
     uses rda5807m library, if debugging populates false values for display
