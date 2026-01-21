@@ -1,5 +1,15 @@
+.web
+.states
+assets/external/
+*.db
+__pycache__/
+*.py[cod]
 *.png
 *.txt
 chromedriver
 *.pyc
 .pyc
+*.jpg
+*.flox
+*.direnv
+.envrc
