@@ -11,3 +11,5 @@ chromedriver
 .pyc
 *.jpg
 *.flox
+*.direnv
+.envrc

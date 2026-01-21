@@ -10,7 +10,7 @@ from typing import Any, Dict, List
 import reflex as rx
 
 from utils.news import News
-from utils.radio import Radio_UI
+from utils.radio import Radio
 from utils.scores import NBAScores, mlbScores, nflScores
 from utils.weather import Weather
 
@@ -34,8 +34,14 @@ class State(rx.State):
     nba_scores: List[Dict[str, Any]] = []
     mlb_scores: List[Dict[str, Any]] = []
     nfl_scores: List[Dict[str, Any]] = []
+
+    # --- Radio State ---
     radio_stations: List[str] = []
-    current_radio_station: str = ""
+    radio_current_station: float = 90.9
+    radio_station_input: str = "90.9"
+    radio_is_playing: bool = False
+    radio_volume: int = 5
+
     _news_client: News | None = None
     last_weather_update: str = "Never"
     weather_img: str = WEATHER_IMAGE_PATH
@@ -43,8 +49,9 @@ class State(rx.State):
     _mlb_client: mlbScores | None = None
     _nba_client: NBAScores | None = None
     _nfl_client: nflScores | None = None
-    _radio_client_ui: Radio_UI = Radio_UI()
-    # _radio_client_control: Radio_Control = Radio_Control()
+
+    _radio_client: Radio | None = None
+
     last_sports_update: float = 0.0
     last_weather_fetch_time: float = 0.0
     last_weather_image_path: str = ""
@@ -59,20 +66,55 @@ class State(rx.State):
             self._mlb_client = mlbScores()
             self._nba_client = NBAScores()
             self._nfl_client = nflScores()
-            self._radio_client_ui = Radio_UI()
 
-            logging.info("Weather client initialized successfully.")
+            # Initialize Radio
+            self._radio_client = Radio()
+
+
+            logging.info("Clients initialized successfully.")
         except Exception as e:
-            logging.error(f"Failed to initialize Weather client: {e}", exc_info=True)
+            logging.error(f"Failed to initialize clients: {e}", exc_info=True)
             self._weather_client = None
-            # Set error state if needed
             self.weather_img = "/error_placeholder.png"
             self.last_weather_update = "Client Init Error"
             self.mlb_scores = []
             self.nba_scores = []
             self.last_sports_update = 0.0
 
-        # --- on_load Handler ---
+    # --- Radio Event Handlers ---
+
+    def toggle_radio(self):
+        if self._radio_client:
+            if self.radio_is_playing:
+                self._radio_client.off()
+                self.radio_is_playing = False
+            else:
+                self._radio_client.on()
+                self._radio_client.set_volume(self.radio_volume)
+                self._radio_client.set_station(self.radio_current_station)
+                self.radio_is_playing = True
+
+    def set_radio_volume(self, val: List[int]):
+        self.radio_volume = val[0]
+        if self._radio_client and self.radio_is_playing:
+             self._radio_client.set_volume(self.radio_volume)
+
+    def set_radio_station_input(self, val: str):
+        self.radio_station_input = val
+
+    def commit_radio_station(self):
+        try:
+            freq = float(self.radio_station_input)
+            self.radio_current_station = freq
+            if self._radio_client and self.radio_is_playing:
+                self._radio_client.set_station(freq)
+            logging.info(f"Station set to {freq}")
+        except ValueError:
+            logging.warning(f"Invalid station input: {self.radio_station_input}")
+            # Revert input to current valid station
+            self.radio_station_input = str(self.radio_current_station)
+
+    # --- on_load Handler ---
 
     async def start_background_tasks(self):
         """Starts background tasks when the page loads."""
@@ -432,13 +474,54 @@ def index() -> rx.Component:
         width="100%",
     )
 
+    # Radio Card Component
+    radio_card = rx.popover.root(
+        rx.popover.trigger(rx.button("Radio")),
+        rx.popover.content(
+            rx.vstack(
+                rx.heading("Radio Control", size="3"),
+                rx.hstack(
+                     rx.text("Status: "),
+                     rx.cond(
+                         State.radio_is_playing,
+                         rx.text("Playing", color="green", weight="bold"),
+                         rx.text("Stopped", color="red", weight="bold")
+                     ),
+                ),
+                rx.button(
+                    rx.cond(State.radio_is_playing, "Stop", "Play"),
+                    on_click=State.toggle_radio,
+                    width="100%"
+                ),
+                rx.text(f"Volume: {State.radio_volume}"),
+                rx.slider(
+                    min_=0,
+                    max_=15,
+                    value=[State.radio_volume],
+                    on_change=State.set_radio_volume,
+                ),
+                rx.text("Station (Freq)"),
+                rx.hstack(
+                    rx.input(
+                        value=State.radio_station_input,
+                        on_change=State.set_radio_station_input,
+                        placeholder="90.9",
+                        width="100px",
+                    ),
+                    rx.button("Set", on_click=State.commit_radio_station),
+                ),
+                spacing="3",
+            ),
+        ),
+    )
+
     # Compose the page
     page = rx.container(  # pyright: ignore[reportReturnType]
         rx.theme_panel(default_open=False),
         rx.flex(
             rx.vstack(
                 rx.hstack(
-                    State._radio_client_ui.radio_card(),
+                    radio_card,
                     clock_button,
                 ),
                 main_flex,

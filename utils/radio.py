@@ -1,159 +1,101 @@
 import logging
+import time
 
-import reflex as rx
-
-# from utils.python_rd5807m.radio import Rda5807m as Radio_lib
-
-DEBUG = True
-CURRENT_STATION = 90.9
-PLAYING = False
-HARDWARE = True
+# Try to import the hardware library, fall back to dummy if fails
+try:
+    from utils.python_rd5807m.radio import Radio as RadioLib
+    HARDWARE_AVAILABLE = True
+except ImportError:
+    HARDWARE_AVAILABLE = False
 
 
-class Radio_UI:
+class DummyDevice:
     def __init__(self):
-        self.station = CURRENT_STATION
-        if DEBUG:
-            self.device = None
-        else:
-            self.device = Radio_Control()
+        self.volume = 5
+        self.freq = 90.9
+        self.muted = False
+        self.stereo = True
+        self.bass = False
 
-    def open_radio_button(self):
-        return rx.button("Radio", on_click=self.open_radio_button)
+    def on(self):
+        logging.info("DummyRadio: Powered ON")
 
-    def play_button(self):
-        if DEBUG:
-            return rx.button("Play")
-        else:
-            return rx.button("Play", on_click=self.device.play_radio)
+    def off(self):
+        logging.info("DummyRadio: Powered OFF")
 
-    def stop_button(self):
-        if DEBUG:
-            return rx.button("Stop")
-        else:
-            return rx.button("Stop", on_click=self.device.stop_radio)
+    def set_volume(self, value):
+        self.volume = value
+        logging.info(f"DummyRadio: Set volume to {value}")
 
-    def volume_slider(self):
-        if DEBUG:
-            return rx.slider(
-                min_=0,
-                max_=10,
-                step=1,
-            )
-        else:
-            return rx.slider(
-                min_=0,
-                max_=10,
-                step=1,
-                value=self.device.volume,
-                on_change=self.device.set_volume,
-            )
+    def set_frequency(self, frequency):
+        self.freq = frequency
+        logging.info(f"DummyRadio: Set frequency to {frequency}")
 
-    def set_station(self, station):
-        self.station = station
+    def set_mute(self, value):
+        self.muted = value
+        logging.info(f"DummyRadio: Mute {value}")
 
-    def station_input(self):
-        if DEBUG:
-            return rx.input(
-                placeholder="Enter station",
-                # set current station to input value
-                value=self.station,
-                on_change=self.set_station,
-            )
-        else:
-            return rx.input(
-                placeholder="Enter station",
-                on_change=self.device.set_station,
-            )
+    def set_stereo(self, value):
+        self.stereo = value
+        logging.info(f"DummyRadio: Stereo {value}")
 
-    def radio_card(self):
-        """
-        Radio Card
-        Main pop open button for radio control
-        """
+    def set_bass(self, value):
+        self.bass = value
+        logging.info(f"DummyRadio: Bass {value}")
 
-        return rx.popover.root(
-            rx.popover.trigger(rx.button("Radio")),
-            rx.popover.content(
-                rx.vstack(
-                    rx.heading("Current Station"),
-                    rx.text(CURRENT_STATION),
-                    rx.hstack(
-                        self.play_button(), self.stop_button(), self.station_input()
-                    ),
-                    self.volume_slider(),
-                ),
-            ),
-        )
+    def close(self):
+        logging.info("DummyRadio: Closed")
 
 
-class Radio_Control(rx.State):
-    """
-    Radio Control Class
-    uses rda5807m library, if debugging populates false values for display
-    """
-
+class Radio:
     def __init__(self):
-        self.debug = DEBUG
-        self.bus = 1
-        self.poll_interval = 0.5
-        self.current_station = CURRENT_STATION
-        self.volume = 7
-        self.playing = False
-        self.signal = 0.0
-        self._display = None
-        self._device = None
+        self.device = None
+        self.is_on = False
+        self.volume = 5
+        self.station = 90.9
+        self._initialize_device()
 
-    def init_radio(self):
-        # self._device = Radio_lib(self.bus)
-        # self._device.init_chip()
-        pass
-
-    def play_radio(self):
-        if self.debug:
-            logging.debug("Playing fake radio")
-            self._display = rx.text("Playing")
-            self.playing = True
+    def _initialize_device(self):
+        if HARDWARE_AVAILABLE:
+            try:
+                self.radio_lib = RadioLib()
+                self.radio_lib.initialize()
+                self.device = self.radio_lib.device
+                logging.info("Radio: Hardware device initialized successfully.")
+            except Exception as e:
+                logging.error(f"Radio: Hardware init failed ({e}). Using Dummy.")
+                self.device = DummyDevice()
         else:
-            if self._device:
-                self._device.on()
-            self.playing = True
+            logging.info("Radio: Hardware lib not found. Using Dummy.")
+            self.device = DummyDevice()
 
-    def stop_radio(self):
-        if self.debug:
-            logging.debug("Stopping radio")
-            self._display = rx.text("Stopped")
-            self.playing = False
-        else:
-            if self._device:
-                self._device.off()
-            self.playing = False
+    def on(self):
+        if self.device:
+            self.device.on()
+            self.is_on = True
 
-    def set_volume(self, volume):
-        if self.debug:
-            logging.debug(f"Setting volume to {volume}")
-            self.volume = volume
-        else:
-            if self._device:
-                self._device.set_volume(volume)
-            self.volume = volume
+    def off(self):
+        if self.device:
+            self.device.off()
+            self.is_on = False
 
-    def set_station(self, station):
-        if self.debug:
-            logging.debug(f"Setting station to {station}")
-            self.current_station = station
-        else:
-            self.current_station = station
-            logging.info(f"Station set to {station}")
+    def set_volume(self, volume: int):
+        """Set volume 0-15"""
+        if self.device:
+            # Ensure volume is within bounds if needed, though UI likely handles it
+            vol = max(0, min(15, int(volume)))
+            self.device.set_volume(vol)
+            self.volume = vol
 
-    def station_change_up(self):
-        if self.debug:
-            pass
-        else:
-            self.current_station += 0.1
+    def set_station(self, station: float):
+        if self.device:
+            self.device.set_frequency(float(station))
+            self.station = station
 
-    def station_change_down(self):
-        if self.debug:
-            pass
-        else:
-            self.current_station -= 0.1
+    def get_info(self):
+        """Return current state as dict"""
+        return {
+            "is_on": self.is_on,
+            "volume": self.volume,
+            "station": self.station,
+        }
