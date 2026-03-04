@@ -13,3 +13,8 @@ chromedriver
 *.flox
 *.direnv
 .envrc
+
+
+# Added by cargo
+
+/target
