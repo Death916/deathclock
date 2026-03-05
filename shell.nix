@@ -9,8 +9,37 @@ pkgs.mkShell {
     python313Packages.ninja
     python313Packages.numpy
     bun
-
+    unstable.rustc
+    unstable.cargo
+    unstable.rust-analyzer
+    unstable.rustfmt
+    pkgs.pkg-config
+    pkgs.openssl
+    pkgs.libxcb
+    pkgs.pkg-config
+    pkgs.openssl
+    pkgs.alsa-lib
+    pkgs.libxcb
+    pkgs.wayland
+    pkgs.libxkbcommon
+    pkgs.fontconfig
+    pkgs.freetype
+    pkgs.mesa
+    pkgs.libGL
+    pkgs.glib
+    pkgs.vulkan-loader
+    pkgs.vulkan-headers
+    pkgs.clippy
   ];
+
+  LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
+    pkgs.wayland
+    pkgs.libxkbcommon
+    pkgs.mesa
+    pkgs.glib
+    pkgs.vulkan-loader
+  ];
+
   shellHook = ''
     source .venv/bin/activate
     # export PATH="${pkgs.bun}/bin:$PATH"
