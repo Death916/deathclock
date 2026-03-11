@@ -15,7 +15,10 @@ enum Sport {
 #[derive(Debug, Clone)]
 enum Pane {
     Main,
-    Sports,
+    MlbPane,
+    NflPane,
+    NbaPane,
+    Weather,
 }
 
 #[derive(Debug, Clone)]
@@ -50,29 +53,25 @@ impl State {
     fn view(state: &State) -> Element<'_, Message> {
         pane_grid(&state.panes, |_pane, pane_state, _is_maximized| {
             let content: Element<'_, Message> = match pane_state {
-                Pane::Main => {
+                Pane::NbaPane => {
                     let games = &state.scores;
-                    let weather_img = image::Handle::from_bytes(state.weather.clone());
                     column![
-                        text("scores").size(50),
+                        text("NBA").size(50),
                         text(format!("{} vs {}", games[0].team1, games[0].team2)).size(20),
                         text(format!("{} - {}", games[0].score1, games[0].score2)).size(20),
-                        row![
-                            text("Weather").size(20),
-                            image(weather_img).width(50),
-                            text(state.location.clone()).size(20),
-                        ]
                     ]
                     .padding(20)
-                    .align_x(Center)
                     .into()
                 }
-                Pane::Sports => {
-                    let games = &state.scores;
+                Pane::NflPane => text("NFL").into(),
+                Pane::MlbPane => text("MLB").into(),
+                Pane::Main => text("Main").into(),
+                Pane::Weather => {
+                    let weather_img = image::Handle::from_bytes(state.weather.clone());
                     column![
-                        text("Scores").size(50),
-                        text(format!("{} vs {}", games[0].team1, games[0].team2)).size(20),
-                        text(format!("{} - {}", games[0].score1, games[0].score2)).size(20),
+                        text("Weather").size(50),
+                        image(weather_img).width(50),
+                        text(state.location.clone()).size(20),
                     ]
                     .padding(20)
                     .into()
@@ -106,8 +105,14 @@ impl Default for State {
             location: "Sacramento".to_string(),
             scores: sports().scores,
             panes: {
-                let (mut panes, first) = pane_grid::State::new(Pane::Main);
-                panes.split(pane_grid::Axis::Vertical, first, Pane::Sports);
+                let (mut panes, nba) = pane_grid::State::new(Pane::NbaPane);
+                let (weather, _) = panes
+                    .split(pane_grid::Axis::Vertical, nba, Pane::Weather)
+                    .unwrap();
+                let (nfl, _) = panes
+                    .split(pane_grid::Axis::Vertical, weather, Pane::NflPane)
+                    .unwrap();
+                panes.split(pane_grid::Axis::Horizontal, nfl, Pane::MlbPane);
                 panes
             },
         }
