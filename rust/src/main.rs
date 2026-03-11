@@ -60,7 +60,7 @@ impl State {
                         text(format!("{} vs {}", games[0].team1, games[0].team2)).size(20),
                         text(format!("{} - {}", games[0].score1, games[0].score2)).size(20),
                     ]
-                    .padding(20)
+                    .padding(5)
                     .into()
                 }
                 Pane::NflPane => text("NFL").into(),
@@ -70,8 +70,8 @@ impl State {
                     let weather_img = image::Handle::from_bytes(state.weather.clone());
                     column![
                         text("Weather").size(50),
-                        image(weather_img).width(50),
-                        text(state.location.clone()).size(20),
+                        image(weather_img).width(100).height(100),
+                        text(state.location.clone()).size(30),
                     ]
                     .padding(20)
                     .into()
@@ -87,15 +87,13 @@ impl State {
 
 impl Default for State {
     fn default() -> Self {
-        let text = ureq::get(
-            "https://raw.githubusercontent.com/iced-rs/iced/9712b319bb7a32848001b96bd84977430f14b623/examples/resources/ferris.png",
-        )
-        .header("User-Agent", "deathclock-app/1.0")
-        .call()
-        .unwrap()
-        .into_body()
-        .read_to_vec()
-        .unwrap();
+        let text = ureq::get("https://v2.wttr.in/Sacramento.png?u0")
+            .header("User-Agent", "deathclock-app/1.0")
+            .call()
+            .unwrap()
+            .into_body()
+            .read_to_vec()
+            .unwrap();
 
         State {
             current_time: chrono::Utc::now(),
