@@ -4,7 +4,7 @@ use chrono::Local;
 use iced::Border;
 use iced::Element;
 use iced::Fill;
-use iced::widget::{column, container, image, pane_grid, row, text};
+use iced::widget::{column, container, image, pane_grid, row, text,scrollable};
 use sports::Game;
 pub fn main() -> iced::Result {
     iced::run(State::update, State::view)
@@ -12,12 +12,12 @@ pub fn main() -> iced::Result {
 
 #[derive(Debug, Clone)]
 enum PaneType {
-    Main,
     MlbPane,
     NflPane,
     NbaPane,
     Weather,
     Clock,
+    News,
 }
 
 #[derive(Debug, Clone)]
@@ -96,9 +96,10 @@ impl State {
                     .into()
                 }
                 PaneType::NflPane => text("NFL").into(),
+                PaneType::News => text("News").into(),
                 PaneType::MlbPane => {
                     let games = &state.mlb_scores;
-                    column(games.iter().map(|game| {
+                    scrollable(column(games.iter().map(|game| {
                         container(
                             column![
                                 row![
@@ -133,11 +134,9 @@ impl State {
                             },
                         })
                         .into()
-                    }))
-                    .padding(0)
+                    })))
                     .into()
                 }
-                PaneType::Main => text("Main").into(),
                 PaneType::Clock => text("clock").into(),
                 PaneType::Weather => {
                     let weather_img = image::Handle::from_bytes(state.weather.clone());
