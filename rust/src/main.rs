@@ -1,6 +1,7 @@
 mod sports;
 use iced::Center;
 use iced::Element;
+use iced::Fill;
 use iced::widget::{column, image, pane_grid, row, text};
 use sports::Game;
 pub fn main() -> iced::Result {
@@ -50,11 +51,21 @@ impl State {
             let content: Element<'_, Message> = match pane_state {
                 PaneType::NbaPane => {
                     let games = &state.scores;
-                    column![
-                        text("NBA").size(50),
-                        text(format!("{} vs {}", games[0].team1, games[0].team2)).size(20),
-                        text(format!("{} - {}", games[0].score1, games[0].score2)).size(20),
-                    ]
+                    column(games.iter().map(|game| {
+                        column![
+                            row![
+                                text(&game.team1).size(20).width(Fill),
+                                text(&game.team2).size(20).width(Fill),
+                            ],
+                            row![
+                                text(&game.score1).size(20).width(Fill),
+                                text(&game.score2).size(20).width(Fill),
+                            ],
+                            text(format!("Period: {}", game.period)).size(14),
+                        ]
+                        .padding(10)
+                        .into()
+                    }))
                     .padding(5)
                     .into()
                 }
@@ -96,10 +107,7 @@ impl Default for State {
             news: Vec::new(),
             weather: text,
             location: "Sacramento".to_string(),
-            scores: {
-                sports::update_nba();
-                sports::sports()
-            },
+            scores: { sports::update_nba() },
             panes: {
                 let (mut panes, nba) = pane_grid::State::new(PaneType::NbaPane);
                 let (weather, _) = panes

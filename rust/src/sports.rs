@@ -49,7 +49,7 @@ pub fn sports() -> Vec<Game> {
     ]
 }
 
-pub fn update_nba() {
+pub fn update_nba() -> Vec<Game> {
     let nba_games =
         ureq::get("https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json")
             .header("User-Agent", "deathclock-app/1.0")
@@ -61,6 +61,7 @@ pub fn update_nba() {
 
     let json: serde_json::Value = serde_json::from_slice(&nba_games).unwrap();
     let games = json["scoreboard"]["games"].as_array().unwrap();
+    let mut updated_games: Vec<Game> = Vec::new();
 
     for game in games {
         let game_id = game["gameId"].as_str().unwrap();
@@ -79,6 +80,7 @@ pub fn update_nba() {
             period,
         );
         game.update(&home_score, &away_score, period);
+        updated_games.push(game);
         println!("Game ID: {}", game_id);
         println!("Home Team: {}", home_team);
         println!("Away Team: {}", away_team);
@@ -86,4 +88,5 @@ pub fn update_nba() {
         println!("Away Score: {}", away_score);
         println!("Period: {}", period);
     }
+    updated_games
 }
