@@ -187,10 +187,10 @@ impl Default for State {
                 let (weather, _) = panes
                     .split(pane_grid::Axis::Vertical, nba, PaneType::Weather)
                     .unwrap();
-                let (nfl, _) = panes
-                    .split(pane_grid::Axis::Vertical, weather, PaneType::NflPane)
+                let (mlb, _) = panes
+                    .split(pane_grid::Axis::Vertical, weather, PaneType::MlbPane)
                     .unwrap();
-                panes.split(pane_grid::Axis::Horizontal, nfl, PaneType::MlbPane);
+                panes.split(pane_grid::Axis::Horizontal, mlb, PaneType::NflPane);
                 panes
             },
         }
