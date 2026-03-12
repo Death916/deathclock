@@ -33,7 +33,9 @@ struct State {
     news: Vec<String>,
     weather: Vec<u8>,
     location: String,
-    scores: Vec<Game>,
+    nba_scores: Vec<Game>,
+    mlb_scores: Vec<Game>,
+    // nfl_scores: Vec<Game>,
     panes: pane_grid::State<PaneType>,
 }
 impl State {
@@ -53,7 +55,7 @@ impl State {
         pane_grid(&state.panes, |_panes, pane_state, _is_maximized| {
             let content: Element<'_, Message> = match pane_state {
                 PaneType::NbaPane => {
-                    let games = &state.scores;
+                    let games = &state.nba_scores;
                     column(games.iter().map(|game| {
                         container(
                             column![
@@ -94,7 +96,47 @@ impl State {
                     .into()
                 }
                 PaneType::NflPane => text("NFL").into(),
-                PaneType::MlbPane => text("MLB").into(),
+                PaneType::MlbPane => {
+                    let games = &state.mlb_scores;
+                    column(games.iter().map(|game| {
+                        container(
+                            column![
+                                row![
+                                    text(&game.team1).size(20).width(Fill),
+                                    text(&game.team2).size(20).width(Fill),
+                                ],
+                                row![
+                                    text(&game.score1).size(20).width(Fill),
+                                    text(&game.score2).size(20).width(Fill),
+                                ],
+                                text(format!("Period: {}", game.period)).size(14),
+                            ]
+                            .padding(10),
+                        )
+                        .padding(5)
+                        .width(Fill)
+                        .style(|_| container::Style {
+                            background: Some(iced::Background::Color(iced::Color::from_rgb(
+                                0.2, 0.2, 0.2,
+                            ))),
+                            border: Border {
+                                width: 1.0,
+                                color: iced::Color::WHITE,
+                                radius: 0.0.into(),
+                            },
+                            text_color: Some(iced::Color::WHITE),
+                            snap: true,
+                            shadow: iced::Shadow {
+                                color: iced::Color::BLACK,
+                                offset: iced::Vector::new(0.0, 0.0),
+                                blur_radius: 10.0,
+                            },
+                        })
+                        .into()
+                    }))
+                    .padding(0)
+                    .into()
+                }
                 PaneType::Main => text("Main").into(),
                 PaneType::Clock => text("clock").into(),
                 PaneType::Weather => {
@@ -123,7 +165,7 @@ impl State {
 impl Default for State {
     fn default() -> Self {
         sports::update_mlb();
-        
+
         let text = ureq::get("https://v2.wttr.in/Sacramento.png?u0")
             .header("User-Agent", "deathclock-app/1.0")
             .call()
@@ -138,7 +180,8 @@ impl Default for State {
             news: Vec::new(),
             weather: text,
             location: "Sacramento".to_string(),
-            scores: { sports::update_nba() },
+            nba_scores: { sports::update_nba() },
+            mlb_scores: { sports::update_mlb() },
             panes: {
                 let (mut panes, nba) = pane_grid::State::new(PaneType::NbaPane);
                 let (weather, _) = panes
@@ -151,7 +194,5 @@ impl Default for State {
                 panes
             },
         }
-        
     }
-    
 }

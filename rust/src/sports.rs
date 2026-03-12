@@ -41,7 +41,7 @@ impl Game {
     }
 }
 
-pub fn update_mlb()  {
+pub fn update_mlb() -> Vec<Game> {
     let date = chrono::Local::now().format("%Y-%m-%d").to_string();
     let mlb_url = format!(
         "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={}",
@@ -62,11 +62,13 @@ pub fn update_mlb()  {
 
     for game in games {
         let home_team = game["teams"]["away"]["team"]["name"].as_str().unwrap();
-        println!("Home Team: {}", home_team);
         let away_team = game["teams"]["home"]["team"]["name"].as_str().unwrap();
-        println!("Away Team: {}", away_team);
-        let home_score = game["teams"]["away"]["score"].as_str().unwrap_or_else(|| "0");
-        let away_score = game["teams"]["home"]["score"].as_str().unwrap_or_else(|| "0");
+        let home_score = game["teams"]["away"]["score"]
+            .as_str()
+            .unwrap_or_else(|| "0");
+        let away_score = game["teams"]["home"]["score"]
+            .as_str()
+            .unwrap_or_else(|| "0");
         let period = game["status"]["period"]
             .as_str()
             .unwrap_or_default()
@@ -89,9 +91,8 @@ pub fn update_mlb()  {
         println!("Away Score: {}", away_score);
         println!("Period: {}", period);
     }
-    
 
-   // mlb_games_vec
+    mlb_games_vec
 }
 
 pub fn update_nba() -> Vec<Game> {
