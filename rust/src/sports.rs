@@ -41,12 +41,57 @@ impl Game {
     }
 }
 
-pub fn sports() -> Vec<Game> {
-    vec![
-        Game::new(Sport::NBA, "Lakers", "Warriors", "100", "95", 3),
-        Game::new(Sport::NBA, "Celtics", "Nets", "110", "105", 2),
-        Game::new(Sport::MLB, "Red Sox", "Yankees", "100", "95", 1),
-    ]
+pub fn update_mlb()  {
+    let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+    let mlb_url = format!(
+        "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={}",
+        date
+    );
+    let mlb_games = ureq::get(&mlb_url)
+        .header("User-Agent", "deathclock-app/1.0")
+        .call()
+        .unwrap()
+        .into_body()
+        .read_to_vec()
+        .unwrap();
+
+    let mlb_json: serde_json::Value = serde_json::from_slice(&mlb_games).unwrap();
+    let games = mlb_json["dates"][0]["games"].as_array().unwrap();
+
+    let mut mlb_games_vec = Vec::new();
+
+    for game in games {
+        let home_team = game["teams"]["away"]["team"]["name"].as_str().unwrap();
+        println!("Home Team: {}", home_team);
+        let away_team = game["teams"]["home"]["team"]["name"].as_str().unwrap();
+        println!("Away Team: {}", away_team);
+        let home_score = game["teams"]["away"]["score"].as_str().unwrap_or_else(|| "0");
+        let away_score = game["teams"]["home"]["score"].as_str().unwrap_or_else(|| "0");
+        let period = game["status"]["period"]
+            .as_str()
+            .unwrap_or_default()
+            .parse::<u8>()
+            .unwrap_or_default();
+
+        let mut mlb_game_struct = Game::new(
+            Sport::MLB,
+            home_team,
+            away_team,
+            home_score,
+            away_score,
+            period,
+        );
+        mlb_game_struct.update(&home_score, &away_score, period);
+        mlb_games_vec.push(mlb_game_struct);
+        println!("Home Team: {}", home_team);
+        println!("Away Team: {}", away_team);
+        println!("Home Score: {}", home_score);
+        println!("Away Score: {}", away_score);
+        println!("Period: {}", period);
+    }
+    
+
+   // mlb_games_vec
 }
 
 pub fn update_nba() -> Vec<Game> {

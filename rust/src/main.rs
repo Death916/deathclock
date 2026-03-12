@@ -2,11 +2,8 @@ mod sports;
 use chrono::DateTime;
 use chrono::Local;
 use iced::Border;
-use iced::Center;
 use iced::Element;
 use iced::Fill;
-use iced::Shadow;
-
 use iced::widget::{column, container, image, pane_grid, row, text};
 use sports::Game;
 pub fn main() -> iced::Result {
@@ -103,13 +100,15 @@ impl State {
                 PaneType::Weather => {
                     let weather_img = image::Handle::from_bytes(state.weather.clone());
                     let time = Local::now().format("%H:%M:%S").to_string();
-                    column![
-                        text(time).size(20).center(),
-                        text("Weather").size(50).center(),
-                        image(weather_img).width(Fill).height(Fill).expand(true),
-                        text(state.location.clone()).size(30).center(),
-                    ]
-                    .padding(0)
+                    container(
+                        column![
+                            text(time).size(20).center(),
+                            text("Weather").size(50).center(),
+                            image(weather_img).width(Fill),
+                            text(state.location.clone()).size(30).center(),
+                        ]
+                        .padding(0),
+                    )
                     .into()
                 }
             };
@@ -123,6 +122,8 @@ impl State {
 
 impl Default for State {
     fn default() -> Self {
+        sports::update_mlb();
+        
         let text = ureq::get("https://v2.wttr.in/Sacramento.png?u0")
             .header("User-Agent", "deathclock-app/1.0")
             .call()
@@ -150,5 +151,7 @@ impl Default for State {
                 panes
             },
         }
+        
     }
+    
 }
