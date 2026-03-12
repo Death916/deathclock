@@ -1,8 +1,13 @@
 mod sports;
+use chrono::DateTime;
+use chrono::Local;
+use iced::Border;
 use iced::Center;
 use iced::Element;
 use iced::Fill;
-use iced::widget::{column, image, pane_grid, row, text};
+use iced::Shadow;
+
+use iced::widget::{column, container, image, pane_grid, row, text};
 use sports::Game;
 pub fn main() -> iced::Result {
     iced::run(State::update, State::view)
@@ -15,6 +20,7 @@ enum PaneType {
     NflPane,
     NbaPane,
     Weather,
+    Clock,
 }
 
 #[derive(Debug, Clone)]
@@ -25,8 +31,8 @@ enum Message {
 
 #[derive(Debug)]
 struct State {
-    current_time: chrono::DateTime<chrono::Utc>,
-    next_alarm: Option<chrono::DateTime<chrono::Utc>>,
+    current_time: DateTime<Local>,
+    next_alarm: Option<DateTime<Local>>,
     news: Vec<String>,
     weather: Vec<u8>,
     location: String,
@@ -52,34 +58,58 @@ impl State {
                 PaneType::NbaPane => {
                     let games = &state.scores;
                     column(games.iter().map(|game| {
-                        column![
-                            row![
-                                text(&game.team1).size(20).width(Fill),
-                                text(&game.team2).size(20).width(Fill),
-                            ],
-                            row![
-                                text(&game.score1).size(20).width(Fill),
-                                text(&game.score2).size(20).width(Fill),
-                            ],
-                            text(format!("Period: {}", game.period)).size(14),
-                        ]
-                        .padding(10)
+                        container(
+                            column![
+                                row![
+                                    text(&game.team1).size(20).width(Fill),
+                                    text(&game.team2).size(20).width(Fill),
+                                ],
+                                row![
+                                    text(&game.score1).size(20).width(Fill),
+                                    text(&game.score2).size(20).width(Fill),
+                                ],
+                                text(format!("Period: {}", game.period)).size(14),
+                            ]
+                            .padding(10),
+                        )
+                        .padding(5)
+                        .width(Fill)
+                        .style(|_| container::Style {
+                            background: Some(iced::Background::Color(iced::Color::from_rgb(
+                                0.2, 0.2, 0.2,
+                            ))),
+                            border: Border {
+                                width: 1.0,
+                                color: iced::Color::WHITE,
+                                radius: 0.0.into(),
+                            },
+                            text_color: Some(iced::Color::WHITE),
+                            snap: true,
+                            shadow: iced::Shadow {
+                                color: iced::Color::BLACK,
+                                offset: iced::Vector::new(0.0, 0.0),
+                                blur_radius: 10.0,
+                            },
+                        })
                         .into()
                     }))
-                    .padding(5)
+                    .padding(0)
                     .into()
                 }
                 PaneType::NflPane => text("NFL").into(),
                 PaneType::MlbPane => text("MLB").into(),
                 PaneType::Main => text("Main").into(),
+                PaneType::Clock => text("clock").into(),
                 PaneType::Weather => {
                     let weather_img = image::Handle::from_bytes(state.weather.clone());
+                    let time = Local::now().format("%H:%M:%S").to_string();
                     column![
-                        text("Weather").size(50),
-                        image(weather_img).width(100).height(100),
-                        text(state.location.clone()).size(30),
+                        text(time).size(20).center(),
+                        text("Weather").size(50).center(),
+                        image(weather_img).width(Fill).height(Fill).expand(true),
+                        text(state.location.clone()).size(30).center(),
                     ]
-                    .padding(20)
+                    .padding(0)
                     .into()
                 }
             };
@@ -102,7 +132,7 @@ impl Default for State {
             .unwrap();
 
         State {
-            current_time: chrono::Utc::now(),
+            current_time: Local::now(),
             next_alarm: None,
             news: Vec::new(),
             weather: text,
