@@ -136,3 +136,18 @@ pub fn update_nba() -> Vec<Game> {
     }
     updated_games
 }
+
+pub fn get_mlb_logos() {
+    let json = std::fs::read_to_string("src/files/mlb_logos.json").unwrap();
+    let parsed_json: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let teams = parsed_json.as_array().unwrap();
+
+    let mut logos_map = std::collections::HashMap::new();
+    for team in teams {
+        let team_name = team["name"].as_str().unwrap();
+        let logo_url = team["logo"].as_str().unwrap();
+        println!("Team Name: {}", team_name);
+        println!("Logo URL: {}", logo_url);
+        logos_map.insert(team_name.to_string(), logo_url.to_string());
+    }
+}

@@ -174,7 +174,7 @@ impl State {
 
 impl Default for State {
     fn default() -> Self {
-        sports::update_mlb();
+        sports::get_mlb_logos();
 
         let text = ureq::get("https://v2.wttr.in/Sacramento.png?u0")
             .header("User-Agent", "deathclock-app/1.0")
