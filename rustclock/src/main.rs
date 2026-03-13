@@ -1,10 +1,12 @@
+#![allow(dead_code)]
+
 mod sports;
 use chrono::DateTime;
 use chrono::Local;
 use iced::Border;
 use iced::Element;
 use iced::Fill;
-use iced::widget::{column, container, image, pane_grid, row, text,scrollable};
+use iced::widget::{column, container, image, pane_grid, row, scrollable, text};
 use sports::Game;
 pub fn main() -> iced::Result {
     iced::run(State::update, State::view)
@@ -140,15 +142,15 @@ impl State {
                 PaneType::Clock => text("clock").into(),
                 PaneType::Weather => {
                     let weather_img = image::Handle::from_bytes(state.weather.clone());
-                    let time = Local::now().format("%H:%M:%S").to_string();
+                    let time = Local::now().format("%m/%d %H:%M:%S").to_string();
                     container(
                         column![
-                            text(time).size(20).center(),
-                            text("Weather").size(50).center(),
+                            text(time).size(30),
+                            text("Weather").size(50),
                             image(weather_img).width(Fill),
-                            text(state.location.clone()).size(30).center(),
+                            text(state.location.clone()).size(30),
                         ]
-                        .padding(0),
+                        .padding(5),
                     )
                     .into()
                 }
