@@ -199,15 +199,15 @@ impl Default for State {
                     a: Box::new(Configuration::Pane(PaneType::Clock)),
                     b: Box::new(Configuration::Split {
                         axis: pane_grid::Axis::Vertical,
-                        ratio: 0.3,
+                        ratio: 0.25,
                         a: Box::new(Configuration::Pane(PaneType::NbaPane)),
                         b: Box::new(Configuration::Split {
                             axis: pane_grid::Axis::Vertical,
-                            ratio: 0.5,
+                            ratio: 0.65,
                             a: Box::new(Configuration::Pane(PaneType::Weather)),
                             b: Box::new(Configuration::Split {
                                 axis: pane_grid::Axis::Horizontal,
-                                ratio: 0.5,
+                                ratio: 0.7,
                                 a: Box::new(Configuration::Pane(PaneType::MlbPane)),
                                 b: Box::new(Configuration::Pane(PaneType::NflPane)),
                             }),
@@ -215,7 +215,6 @@ impl Default for State {
                     }),
                 };
 
-                // panes
                 pane_grid::State::with_configuration(config)
             },
         }
