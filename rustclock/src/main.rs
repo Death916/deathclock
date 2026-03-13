@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+// #![allow(dead_code)]
 
 mod sports;
 use chrono::DateTime;
@@ -6,6 +6,7 @@ use chrono::Local;
 use iced::Border;
 use iced::Element;
 use iced::Fill;
+use iced::widget::pane_grid::Configuration;
 use iced::widget::{column, container, image, pane_grid, row, scrollable, text};
 use sports::Game;
 pub fn main() -> iced::Result {
@@ -95,6 +96,7 @@ impl State {
                         .into()
                     }))
                     .padding(0)
+                    .width(50)
                     .into()
                 }
                 PaneType::NflPane => text("NFL").into(),
@@ -139,19 +141,26 @@ impl State {
                     })))
                     .into()
                 }
-                PaneType::Clock => text("clock").into(),
+                PaneType::Clock => container(row![
+                    text(Local::now().format("%m/%d %H:%M:%S").to_string()).size(30),
+                ])
+                .align_x(iced::Alignment::Center)
+                .into(),
                 PaneType::Weather => {
                     let weather_img = image::Handle::from_bytes(state.weather.clone());
-                    let time = Local::now().format("%m/%d %H:%M:%S").to_string();
                     container(
                         column![
-                            text(time).size(30),
                             text("Weather").size(50),
                             image(weather_img).width(Fill),
                             text(state.location.clone()).size(30),
                         ]
-                        .padding(5),
+                        .padding(5)
+                        .align_x(iced::Alignment::Center),
                     )
+                    .width(Fill)
+                    .height(Fill)
+                    .center_x(Fill)
+                    .center_y(Fill)
                     .into()
                 }
             };
@@ -184,15 +193,30 @@ impl Default for State {
             nba_scores: { sports::update_nba() },
             mlb_scores: { sports::update_mlb() },
             panes: {
-                let (mut panes, nba) = pane_grid::State::new(PaneType::NbaPane);
-                let (weather, _) = panes
-                    .split(pane_grid::Axis::Vertical, nba, PaneType::Weather)
-                    .unwrap();
-                let (mlb, _) = panes
-                    .split(pane_grid::Axis::Vertical, weather, PaneType::MlbPane)
-                    .unwrap();
-                panes.split(pane_grid::Axis::Horizontal, mlb, PaneType::NflPane);
-                panes
+                let config = Configuration::Split {
+                    axis: pane_grid::Axis::Horizontal,
+                    ratio: 0.05,
+                    a: Box::new(Configuration::Pane(PaneType::Clock)),
+                    b: Box::new(Configuration::Split {
+                        axis: pane_grid::Axis::Vertical,
+                        ratio: 0.3,
+                        a: Box::new(Configuration::Pane(PaneType::NbaPane)),
+                        b: Box::new(Configuration::Split {
+                            axis: pane_grid::Axis::Vertical,
+                            ratio: 0.5,
+                            a: Box::new(Configuration::Pane(PaneType::Weather)),
+                            b: Box::new(Configuration::Split {
+                                axis: pane_grid::Axis::Horizontal,
+                                ratio: 0.5,
+                                a: Box::new(Configuration::Pane(PaneType::MlbPane)),
+                                b: Box::new(Configuration::Pane(PaneType::NflPane)),
+                            }),
+                        }),
+                    }),
+                };
+
+                // panes
+                pane_grid::State::with_configuration(config)
             },
         }
     }
