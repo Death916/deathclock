@@ -104,7 +104,7 @@ impl State {
                 PaneType::News => text("News").into(),
                 PaneType::MlbPane => {
                     let games = &state.mlb_scores;
-                    let logos = sports::get_mlb_logos();
+                    let logos = sports::get_mlb_logos(); // TODO: MOVE TO INITIALIZATION AND CACHE
                     scrollable(column(games.iter().map(|game| {
                         let Some(team1_logo) = logos.get(&game.team1) else {
                             return text("Error: Team 1 logo not found").into();
@@ -117,13 +117,13 @@ impl State {
                         container(
                             column![
                                 row![
+                                    image(team1_handle.clone()).width(15).height(15),
                                     text(&game.team1).size(20).width(Fill),
-                                    image(team1_handle.clone()).width(50).height(50),
+                                    image(team2_handle.clone()).width(15).height(15),
                                     text(&game.team2).size(20).width(Fill),
                                 ],
                                 row![
                                     text(&game.score1).size(20).width(Fill),
-                                    image(team2_handle.clone()).width(50).height(50),
                                     text(&game.score2).size(20).width(Fill),
                                 ],
                                 text(format!("Period: {}", game.period)).size(14),

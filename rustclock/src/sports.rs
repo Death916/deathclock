@@ -147,8 +147,6 @@ pub fn get_mlb_logos() -> HashMap<String, Vec<u8>> {
     for team in teams {
         let team_name = team["name"].as_str().unwrap();
         let logo_url = team["logo"].as_str().unwrap();
-        println!("Team Name: {}", team_name);
-        println!("Logo URL: {}", logo_url);
         logos_map.insert(team_name.to_string(), logo_url.to_string());
     }
     let mut logos_svg_map = std::collections::HashMap::new();
@@ -157,13 +155,9 @@ pub fn get_mlb_logos() -> HashMap<String, Vec<u8>> {
             .header("User-Agent", "deathclock-app/0.1")
             .call()
             .unwrap();
-        
+
         let image_data = response.into_body().read_to_vec().unwrap();
-        println!("Logo Data Length: {}", image_data.clone().len());
         logos_svg_map.insert(team_name.to_string(), image_data);
-        println!("Team Name: {}", team_name);
-       
-        
     }
     logos_svg_map
 }
