@@ -161,3 +161,29 @@ pub fn get_mlb_logos() -> HashMap<String, Vec<u8>> {
     }
     logos_svg_map
 }
+
+pub fn get_nba_logos() -> HashMap<String, Vec<u8>> {
+    let json = std::fs::read_to_string("src/files/nba_logos.json").unwrap();
+    let parsed_json: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let teams = parsed_json.as_array().unwrap();
+
+    let mut logos_map = std::collections::HashMap::new();
+    for team in teams {
+        let team_name = team["name"].as_str().unwrap();
+        let logo_url = team["logo"].as_str().unwrap();
+        logos_map.insert(team_name.to_string(), logo_url.to_string());
+    }
+    let mut nba_svg_map = std::collections::HashMap::new();
+    for (team_name, logo_url) in logos_map.iter() {
+        let response = ureq::get(logo_url)
+            .header("User-Agent", "deathclock-app/0.1")
+            .call()
+            .unwrap();
+        println!("Response {}", response.status());
+
+        let image_data = response.into_body().read_to_vec().unwrap();
+        nba_svg_map.insert(team_name.to_string(), image_data);
+        println!("Downloaded logo for {}", team_name);
+    }
+    nba_svg_map
+}

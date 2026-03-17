@@ -9,6 +9,7 @@ use iced::Fill;
 use iced::widget::pane_grid::Configuration;
 use iced::widget::{column, container, image, pane_grid, row, scrollable, text};
 use sports::Game;
+use std::collections::HashMap;
 
 pub fn main() -> iced::Result {
     iced::run(State::update, State::view)
@@ -28,6 +29,7 @@ enum PaneType {
 enum Message {
     PaneDragged(pane_grid::DragEvent),
     PaneResized(pane_grid::ResizeEvent),
+    RunSportsUpdate,
 }
 
 #[derive(Debug)]
@@ -41,6 +43,8 @@ struct State {
     mlb_scores: Vec<Game>,
     // nfl_scores: Vec<Game>,
     panes: pane_grid::State<PaneType>,
+    nba_logos: HashMap<String, Vec<u8>>,
+    mlb_logos: HashMap<String, Vec<u8>>,
 }
 impl State {
     fn update(&mut self, message: Message) {
@@ -52,6 +56,10 @@ impl State {
             Message::PaneResized(pane_grid::ResizeEvent { split, ratio }) => {
                 self.panes.resize(split, ratio);
             }
+            Message::RunSportsUpdate => {
+                self.nba_scores = sports::update_nba();
+                self.mlb_scores = sports::update_mlb();
+            }
         }
     }
 
@@ -60,11 +68,23 @@ impl State {
             let content: Element<'_, Message> = match pane_state {
                 PaneType::NbaPane => {
                     let games = &state.nba_scores;
+
                     column(games.iter().map(|game| {
+                        let Some(team1_logo) = state.nba_logos.get(&game.team1) else {
+                            return text(format!("Error: Team 1 logo not found for {}", game.team1)).into();
+                        };
+                        let team1_handle = image::Handle::from_bytes(team1_logo.clone());
+                        let Some(team2_logo) = state.nba_logos.get(&game.team2) else {
+                            return text("Error: Team 2 logo not found").into();
+                        };
+                        let team2_handle = image::Handle::from_bytes(team2_logo.clone());
+
                         container(
                             column![
                                 row![
+                                    image(team1_handle).width(30).height(30),
                                     text(&game.team1).size(20).width(Fill),
+                                    image(team2_handle).width(30).height(30),
                                     text(&game.team2).size(20).width(Fill),
                                 ],
                                 row![
@@ -104,13 +124,13 @@ impl State {
                 PaneType::News => text("News").into(),
                 PaneType::MlbPane => {
                     let games = &state.mlb_scores;
-                    let logos = sports::get_mlb_logos(); // TODO: MOVE TO INITIALIZATION AND CACHE
+                    // TODO: MOVE TO INITIALIZATION AND CACHE
                     scrollable(column(games.iter().map(|game| {
-                        let Some(team1_logo) = logos.get(&game.team1) else {
-                            return text("Error: Team 1 logo not found").into();
+                        let Some(team1_logo) = state.mlb_logos.get(&game.team1) else {
+                            return text(format!("Error: Team 1 logo not found for {}", game.team1)).into();
                         };
                         let team1_handle = image::Handle::from_bytes(team1_logo.clone());
-                        let Some(team2_logo) = logos.get(&game.team2) else {
+                        let Some(team2_logo) = state.mlb_logos.get(&game.team2) else {
                             return text("Error: Team 2 logo not found").into();
                         };
                         let team2_handle = image::Handle::from_bytes(team2_logo.clone());
@@ -196,6 +216,9 @@ impl Default for State {
             .read_to_vec()
             .unwrap();
 
+        let mlb_logos = sports::get_mlb_logos();
+        let nba_logos = sports::get_nba_logos();
+
         State {
             current_time: Local::now(),
             next_alarm: None,
@@ -204,6 +227,8 @@ impl Default for State {
             location: "Sacramento".to_string(),
             nba_scores: { sports::update_nba() },
             mlb_scores: { sports::update_mlb() },
+            mlb_logos,
+            nba_logos,
             panes: {
                 let config = Configuration::Split {
                     axis: pane_grid::Axis::Horizontal,
