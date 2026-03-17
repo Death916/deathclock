@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use tokio::time::{Duration, sleep};
 
 pub fn main() -> iced::Result {
-    iced::run(State::update, State::view)
+    iced::run(RustClock::update, RustClock::view)
 }
 
 #[derive(Debug, Clone)]
@@ -32,7 +32,7 @@ enum Message {
 }
 
 #[derive(Debug)]
-struct State {
+struct RustClock {
     current_time: DateTime<Local>,
     next_alarm: Option<DateTime<Local>>,
     news: Vec<String>,
@@ -45,7 +45,34 @@ struct State {
     nba_logos: HashMap<String, Vec<u8>>,
     mlb_logos: HashMap<String, Vec<u8>>,
 }
-impl State {
+impl RustClock {
+    
+    fn new() -> Self {
+        let current_time = Local::now();
+        let next_alarm = None;
+        let news = Vec::new();
+        let weather = Vec::new();
+        let location = String::new();
+        let nba_scores = Vec::new();
+        let mlb_scores = Vec::new();
+        let panes = pane_grid::State::Default();
+        let nba_logos = HashMap::new();
+        let mlb_logos = HashMap::new();
+
+        Self {
+            current_time,
+            next_alarm,
+            news,
+            weather,
+            location,
+            nba_scores,
+            mlb_scores,
+            panes,
+            nba_logos,
+            mlb_logos,
+        }
+    }
+
     fn update(&mut self, message: Message) {
         match message {
             Message::PaneDragged(pane_grid::DragEvent::Dropped { pane, target }) => {
@@ -62,7 +89,7 @@ impl State {
         }
     }
 
-    fn view(state: &State) -> Element<'_, Message> {
+    fn view(state: &RustClock) -> Element<'_, Message> {
         pane_grid(&state.panes, |_panes, pane_state, _is_maximized| {
             let content: Element<'_, Message> = match pane_state {
                 PaneType::NbaPane => {
@@ -210,7 +237,7 @@ impl State {
     }
 }
 
-impl Default for State {
+impl Default for RustClock {
     fn default() -> Self {
         sports::get_mlb_logos();
 
@@ -225,7 +252,7 @@ impl Default for State {
         let mlb_logos = sports::get_mlb_logos();
         let nba_logos = sports::get_nba_logos();
 
-        State {
+        RustClock {
             current_time: Local::now(),
             next_alarm: None,
             news: Vec::new(),
@@ -266,7 +293,7 @@ impl Default for State {
 
 async fn dash_updates() {
     loop {
-        let mut state = State::default();
+        let mut state = RustClock::default();
         state.update(Message::RunSportsUpdate);
         println!("Updated sports scores");
         tokio::time::sleep(Duration::from_secs(60)).await;
