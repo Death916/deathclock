@@ -9,6 +9,7 @@ use iced::Fill;
 use iced::widget::pane_grid::Configuration;
 use iced::widget::{column, container, image, pane_grid, row, scrollable, text};
 use sports::Game;
+
 pub fn main() -> iced::Result {
     iced::run(State::update, State::view)
 }
@@ -103,15 +104,26 @@ impl State {
                 PaneType::News => text("News").into(),
                 PaneType::MlbPane => {
                     let games = &state.mlb_scores;
+                    let logos = sports::get_mlb_logos();
                     scrollable(column(games.iter().map(|game| {
+                        let Some(team1_logo) = logos.get(&game.team1) else {
+                            return text("Error: Team 1 logo not found").into();
+                        };
+                        let team1_handle = image::Handle::from_bytes(team1_logo.clone());
+                        let Some(team2_logo) = logos.get(&game.team2) else {
+                            return text("Error: Team 2 logo not found").into();
+                        };
+                        let team2_handle = image::Handle::from_bytes(team2_logo.clone());
                         container(
                             column![
                                 row![
                                     text(&game.team1).size(20).width(Fill),
+                                    image(team1_handle.clone()).width(50).height(50),
                                     text(&game.team2).size(20).width(Fill),
                                 ],
                                 row![
                                     text(&game.score1).size(20).width(Fill),
+                                    image(team2_handle.clone()).width(50).height(50),
                                     text(&game.score2).size(20).width(Fill),
                                 ],
                                 text(format!("Period: {}", game.period)).size(14),

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 #[derive(Debug, Clone)]
 pub enum Sport {
     NBA,
@@ -137,7 +138,7 @@ pub fn update_nba() -> Vec<Game> {
     updated_games
 }
 
-pub fn get_mlb_logos() {
+pub fn get_mlb_logos() -> HashMap<String, Vec<u8>> {
     let json = std::fs::read_to_string("src/files/mlb_logos.json").unwrap();
     let parsed_json: serde_json::Value = serde_json::from_str(&json).unwrap();
     let teams = parsed_json.as_array().unwrap();
@@ -150,4 +151,19 @@ pub fn get_mlb_logos() {
         println!("Logo URL: {}", logo_url);
         logos_map.insert(team_name.to_string(), logo_url.to_string());
     }
+    let mut logos_svg_map = std::collections::HashMap::new();
+    for (team_name, logo_url) in logos_map.iter() {
+        let response = ureq::get(logo_url)
+            .header("User-Agent", "deathclock-app/0.1")
+            .call()
+            .unwrap();
+        
+        let image_data = response.into_body().read_to_vec().unwrap();
+        println!("Logo Data Length: {}", image_data.clone().len());
+        logos_svg_map.insert(team_name.to_string(), image_data);
+        println!("Team Name: {}", team_name);
+       
+        
+    }
+    logos_svg_map
 }
