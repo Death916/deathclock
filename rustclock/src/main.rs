@@ -4,6 +4,8 @@ use chrono::{DateTime, Local};
 use iced::Border;
 use iced::Element;
 use iced::Fill;
+use iced::Task;
+use iced::application;
 use iced::widget::pane_grid::Configuration;
 use iced::widget::{column, container, image, pane_grid, row, scrollable, text};
 use sports::Game;
@@ -11,7 +13,13 @@ use std::collections::HashMap;
 use tokio::time::{Duration, sleep};
 
 pub fn main() -> iced::Result {
-    iced::run(RustClock::update, RustClock::view)
+    iced::application(
+        || (RustClock::default(), Task::none()), // Wrap it in a closure
+        RustClock::update,
+        RustClock::view,
+    )
+    .title("RustClock")
+    .run()
 }
 
 #[derive(Debug, Clone)]
@@ -46,33 +54,6 @@ struct RustClock {
     mlb_logos: HashMap<String, Vec<u8>>,
 }
 impl RustClock {
-    
-    fn new() -> Self {
-        let current_time = Local::now();
-        let next_alarm = None;
-        let news = Vec::new();
-        let weather = Vec::new();
-        let location = String::new();
-        let nba_scores = Vec::new();
-        let mlb_scores = Vec::new();
-        let panes = pane_grid::State::Default();
-        let nba_logos = HashMap::new();
-        let mlb_logos = HashMap::new();
-
-        Self {
-            current_time,
-            next_alarm,
-            news,
-            weather,
-            location,
-            nba_scores,
-            mlb_scores,
-            panes,
-            nba_logos,
-            mlb_logos,
-        }
-    }
-
     fn update(&mut self, message: Message) {
         match message {
             Message::PaneDragged(pane_grid::DragEvent::Dropped { pane, target }) => {
