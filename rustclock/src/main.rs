@@ -1,8 +1,6 @@
 // #![allow(dead_code)]
-
 mod sports;
-use chrono::DateTime;
-use chrono::Local;
+use chrono::{DateTime, Local};
 use iced::Border;
 use iced::Element;
 use iced::Fill;
@@ -10,6 +8,7 @@ use iced::widget::pane_grid::Configuration;
 use iced::widget::{column, container, image, pane_grid, row, scrollable, text};
 use sports::Game;
 use std::collections::HashMap;
+use tokio::time::{Duration, sleep};
 
 pub fn main() -> iced::Result {
     iced::run(State::update, State::view)
@@ -71,7 +70,11 @@ impl State {
 
                     column(games.iter().map(|game| {
                         let Some(team1_logo) = state.nba_logos.get(&game.team1) else {
-                            return text(format!("Error: Team 1 logo not found for {}", game.team1)).into();
+                            return text(format!(
+                                "Error: Team 1 logo not found for {}",
+                                game.team1
+                            ))
+                            .into();
                         };
                         let team1_handle = image::Handle::from_bytes(team1_logo.clone());
                         let Some(team2_logo) = state.nba_logos.get(&game.team2) else {
@@ -124,10 +127,13 @@ impl State {
                 PaneType::News => text("News").into(),
                 PaneType::MlbPane => {
                     let games = &state.mlb_scores;
-                    // TODO: MOVE TO INITIALIZATION AND CACHE
                     scrollable(column(games.iter().map(|game| {
                         let Some(team1_logo) = state.mlb_logos.get(&game.team1) else {
-                            return text(format!("Error: Team 1 logo not found for {}", game.team1)).into();
+                            return text(format!(
+                                "Error: Team 1 logo not found for {}",
+                                game.team1
+                            ))
+                            .into();
                         };
                         let team1_handle = image::Handle::from_bytes(team1_logo.clone());
                         let Some(team2_logo) = state.mlb_logos.get(&game.team2) else {
@@ -255,5 +261,14 @@ impl Default for State {
                 pane_grid::State::with_configuration(config)
             },
         }
+    }
+}
+
+async fn dash_updates() {
+    loop {
+        let mut state = State::default();
+        state.update(Message::RunSportsUpdate);
+        println!("Updated sports scores");
+        tokio::time::sleep(Duration::from_secs(60)).await;
     }
 }
