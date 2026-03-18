@@ -7,27 +7,26 @@ use std::collections::HashMap;
 
 use crate::Message;
 use crate::sports::Game;
+use iced::widget::image::Handle;
 
 pub fn render_nba_pane<'a>(
     games: &'a [Game],
-    logos: &'a HashMap<String, Vec<u8>>,
+    logos: &'a HashMap<String, Handle>,
 ) -> Element<'a, Message> {
     column(games.iter().map(|game| {
         let Some(team1_logo) = logos.get(&game.team1) else {
             return text(format!("Error: Team 1 logo not found for {}", game.team1)).into();
         };
-        let team1_handle = image::Handle::from_bytes(team1_logo.clone());
         let Some(team2_logo) = logos.get(&game.team2) else {
             return text("Error: Team 2 logo not found").into();
         };
-        let team2_handle = image::Handle::from_bytes(team2_logo.clone());
 
         container(
             column![
                 row![
-                    image(team1_handle).width(30).height(30),
+                    image(team1_logo.clone()).width(30).height(30),
                     text(&game.team1).size(20).width(Fill),
-                    image(team2_handle).width(30).height(30),
+                    image(team2_logo.clone()).width(30).height(30),
                     text(&game.team2).size(20).width(Fill),
                 ],
                 row![
@@ -74,23 +73,21 @@ pub fn render_news_pane<'a>() -> Element<'a, Message> {
 
 pub fn render_mlb_pane<'a>(
     games: &'a [Game],
-    logos: &'a HashMap<String, Vec<u8>>,
+    logos: &'a HashMap<String, Handle>,
 ) -> Element<'a, Message> {
     scrollable(column(games.iter().map(|game| {
         let Some(team1_logo) = logos.get(&game.team1) else {
             return text(format!("Error: Team 1 logo not found for {}", game.team1)).into();
         };
-        let team1_handle = image::Handle::from_bytes(team1_logo.clone());
         let Some(team2_logo) = logos.get(&game.team2) else {
             return text("Error: Team 2 logo not found").into();
         };
-        let team2_handle = image::Handle::from_bytes(team2_logo.clone());
         container(
             column![
                 row![
-                    image(team1_handle.clone()).width(15).height(15),
+                    image(team1_logo.clone()).width(15).height(15),
                     text(&game.team1).size(20).width(Fill),
-                    image(team2_handle.clone()).width(15).height(15),
+                    image(team2_logo.clone()).width(15).height(15),
                     text(&game.team2).size(20).width(Fill),
                 ],
                 row![
@@ -133,12 +130,14 @@ pub fn render_clock_pane<'a>() -> Element<'a, Message> {
     .into()
 }
 
-pub fn render_weather_pane<'a>(weather_data: &'a [u8], location: &'a str) -> Element<'a, Message> {
-    let weather_img = image::Handle::from_bytes(weather_data.to_vec());
+pub fn render_weather_pane<'a>(weather_handle: &'a Option<Handle>, location: &'a str) -> Element<'a, Message> {
+    let Some(weather_img) = weather_handle else {
+        return text("Weather image not loaded").into();
+    };
     container(
         column![
             text("Weather").size(50),
-            image(weather_img).width(Fill),
+            image(weather_img.clone()).width(Fill),
             text(location).size(30),
         ]
         .padding(5)
