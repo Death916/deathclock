@@ -1,6 +1,7 @@
 // #![allow(dead_code)]
 mod panes;
 mod sports;
+mod weather;
 use chrono::{DateTime, Local};
 use iced::Element;
 use iced::Subscription;
@@ -16,6 +17,7 @@ use std::collections::HashMap;
 
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
 const UPDATE_SPORTS_TIME_MINS: u64 = 3;
+const WEATHER_UPDATE_TIME_MINS: u64 = 30;
 
 pub fn main() -> iced::Result {
     iced::application(
@@ -44,6 +46,7 @@ enum Message {
     PaneResized(pane_grid::ResizeEvent),
     RunSportsUpdate,
     UpdateTime,
+    UpdateWeather,
 }
 
 #[derive(Debug)]
@@ -51,7 +54,6 @@ struct RustClock {
     current_time: DateTime<Local>,
     next_alarm: Option<DateTime<Local>>,
     news: Vec<String>,
-    weather: Vec<u8>,
     location: String,
     nba_scores: Vec<Game>,
     mlb_scores: Vec<Game>,
@@ -77,6 +79,7 @@ impl RustClock {
             Message::UpdateTime => {
                 self.current_time = Local::now();
             }
+            Message::UpdateWeather => self.weather_handle = weather::get_weather(),
         }
     }
 
@@ -86,6 +89,8 @@ impl RustClock {
                 .map(|_| Message::UpdateTime),
             iced::time::every(Duration::from_mins(UPDATE_SPORTS_TIME_MINS))
                 .map(|_| Message::RunSportsUpdate),
+            iced::time::every(Duration::from_mins(WEATHER_UPDATE_TIME_MINS))
+                .map(|_| Message::UpdateWeather),
         ])
     }
 
@@ -111,14 +116,6 @@ impl RustClock {
 
 impl Default for RustClock {
     fn default() -> Self {
-        let text = ureq::get("https://v2.wttr.in/Sacramento.png?u0")
-            .header("User-Agent", "deathclock-app/1.0")
-            .call()
-            .unwrap()
-            .into_body()
-            .read_to_vec()
-            .unwrap();
-
         let mlb_logos_bytes = sports::get_mlb_logos();
         let nba_logos_bytes = sports::get_nba_logos();
 
@@ -135,13 +132,12 @@ impl Default for RustClock {
             current_time: Local::now(),
             next_alarm: None,
             news: Vec::new(),
-            weather: text.clone(),
             location: "Sacramento".to_string(),
             nba_scores: { sports::update_nba() },
             mlb_scores: { sports::update_mlb() },
             mlb_logos,
             nba_logos,
-            weather_handle: Some(Handle::from_bytes(text)),
+            weather_handle: weather::get_weather(),
             panes: {
                 let config = Configuration::Split {
                     axis: pane_grid::Axis::Horizontal,

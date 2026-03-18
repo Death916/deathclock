@@ -130,7 +130,10 @@ pub fn render_clock_pane<'a>() -> Element<'a, Message> {
     .into()
 }
 
-pub fn render_weather_pane<'a>(weather_handle: &'a Option<Handle>, location: &'a str) -> Element<'a, Message> {
+pub fn render_weather_pane<'a>(
+    weather_handle: &'a Option<Handle>,
+    location: &'a str,
+) -> Element<'a, Message> {
     let Some(weather_img) = weather_handle else {
         return text("Weather image not loaded").into();
     };
