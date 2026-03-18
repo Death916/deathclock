@@ -1,13 +1,12 @@
 // #![allow(dead_code)]
+mod panes;
 mod sports;
 use chrono::{DateTime, Local};
-use iced::Border;
 use iced::Element;
-use iced::Fill;
 use iced::Task;
 use iced::application;
+use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
-use iced::widget::{column, container, image, pane_grid, row, scrollable, text};
 use sports::Game;
 use std::collections::HashMap;
 use tokio::time::{Duration, sleep};
@@ -73,142 +72,12 @@ impl RustClock {
     fn view(state: &RustClock) -> Element<'_, Message> {
         pane_grid(&state.panes, |_panes, pane_state, _is_maximized| {
             let content: Element<'_, Message> = match pane_state {
-                PaneType::NbaPane => {
-                    let games = &state.nba_scores;
-
-                    column(games.iter().map(|game| {
-                        let Some(team1_logo) = state.nba_logos.get(&game.team1) else {
-                            return text(format!(
-                                "Error: Team 1 logo not found for {}",
-                                game.team1
-                            ))
-                            .into();
-                        };
-                        let team1_handle = image::Handle::from_bytes(team1_logo.clone());
-                        let Some(team2_logo) = state.nba_logos.get(&game.team2) else {
-                            return text("Error: Team 2 logo not found").into();
-                        };
-                        let team2_handle = image::Handle::from_bytes(team2_logo.clone());
-
-                        container(
-                            column![
-                                row![
-                                    image(team1_handle).width(30).height(30),
-                                    text(&game.team1).size(20).width(Fill),
-                                    image(team2_handle).width(30).height(30),
-                                    text(&game.team2).size(20).width(Fill),
-                                ],
-                                row![
-                                    text(&game.score1).size(20).width(Fill),
-                                    text(&game.score2).size(20).width(Fill),
-                                ],
-                                text(format!("Period: {}", game.period)).size(14),
-                            ]
-                            .padding(10),
-                        )
-                        .padding(5)
-                        .width(Fill)
-                        .style(|_| container::Style {
-                            background: Some(iced::Background::Color(iced::Color::from_rgb(
-                                0.2, 0.2, 0.2,
-                            ))),
-                            border: Border {
-                                width: 1.0,
-                                color: iced::Color::WHITE,
-                                radius: 0.0.into(),
-                            },
-                            text_color: Some(iced::Color::WHITE),
-                            snap: true,
-                            shadow: iced::Shadow {
-                                color: iced::Color::BLACK,
-                                offset: iced::Vector::new(0.0, 0.0),
-                                blur_radius: 10.0,
-                            },
-                        })
-                        .into()
-                    }))
-                    .padding(0)
-                    .width(50)
-                    .into()
-                }
-                PaneType::NflPane => text("NFL").into(),
-                PaneType::News => text("News").into(),
-                PaneType::MlbPane => {
-                    let games = &state.mlb_scores;
-                    scrollable(column(games.iter().map(|game| {
-                        let Some(team1_logo) = state.mlb_logos.get(&game.team1) else {
-                            return text(format!(
-                                "Error: Team 1 logo not found for {}",
-                                game.team1
-                            ))
-                            .into();
-                        };
-                        let team1_handle = image::Handle::from_bytes(team1_logo.clone());
-                        let Some(team2_logo) = state.mlb_logos.get(&game.team2) else {
-                            return text("Error: Team 2 logo not found").into();
-                        };
-                        let team2_handle = image::Handle::from_bytes(team2_logo.clone());
-                        container(
-                            column![
-                                row![
-                                    image(team1_handle.clone()).width(15).height(15),
-                                    text(&game.team1).size(20).width(Fill),
-                                    image(team2_handle.clone()).width(15).height(15),
-                                    text(&game.team2).size(20).width(Fill),
-                                ],
-                                row![
-                                    text(&game.score1).size(20).width(Fill),
-                                    text(&game.score2).size(20).width(Fill),
-                                ],
-                                text(format!("Period: {}", game.period)).size(14),
-                            ]
-                            .padding(10),
-                        )
-                        .padding(5)
-                        .width(Fill)
-                        .style(|_| container::Style {
-                            background: Some(iced::Background::Color(iced::Color::from_rgb(
-                                0.2, 0.2, 0.2,
-                            ))),
-                            border: Border {
-                                width: 1.0,
-                                color: iced::Color::WHITE,
-                                radius: 0.0.into(),
-                            },
-                            text_color: Some(iced::Color::WHITE),
-                            snap: true,
-                            shadow: iced::Shadow {
-                                color: iced::Color::BLACK,
-                                offset: iced::Vector::new(0.0, 0.0),
-                                blur_radius: 10.0,
-                            },
-                        })
-                        .into()
-                    })))
-                    .into()
-                }
-                PaneType::Clock => container(row![
-                    text(Local::now().format("%m/%d %H:%M:%S").to_string()).size(30),
-                ])
-                .align_x(iced::Alignment::Center)
-                .into(),
-                PaneType::Weather => {
-                    let weather_img = image::Handle::from_bytes(state.weather.clone());
-                    container(
-                        column![
-                            text("Weather").size(50),
-                            image(weather_img).width(Fill),
-                            text(state.location.clone()).size(30),
-                        ]
-                        .padding(5)
-                        .align_x(iced::Alignment::Center),
-                    )
-                    .width(Fill)
-                    .height(Fill)
-                    .center_x(Fill)
-                    .center_y(Fill)
-                    .into()
-                }
+                PaneType::NbaPane => panes::render_nba_pane(&state.nba_scores, &state.nba_logos),
+                PaneType::NflPane => panes::render_nfl_pane(),
+                PaneType::News => panes::render_news_pane(),
+                PaneType::MlbPane => panes::render_mlb_pane(&state.mlb_scores, &state.mlb_logos),
+                PaneType::Clock => panes::render_clock_pane(),
+                PaneType::Weather => panes::render_weather_pane(&state.weather, &state.location),
             };
             pane_grid::Content::new(content)
         })
