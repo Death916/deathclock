@@ -11,5 +11,6 @@ pub fn get_weather() -> Option<Handle> {
         .unwrap();
 
     let handle = Some(Handle::from_bytes(image));
+    dbg!("updating weather");
     handle
 }

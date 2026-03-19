@@ -1,4 +1,5 @@
 // #![allow(dead_code)]
+mod news;
 mod panes;
 mod sports;
 mod weather;
@@ -6,9 +7,7 @@ use chrono::{DateTime, Local};
 use iced::Element;
 use iced::Subscription;
 use iced::Task;
-use iced::time;
 use iced::time::Duration;
-use iced::widget::image;
 use iced::widget::image::Handle;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
@@ -16,7 +15,7 @@ use sports::Game;
 use std::collections::HashMap;
 
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
-const UPDATE_SPORTS_TIME_MINS: u64 = 3;
+const UPDATE_SPORTS_TIME_MINS: u64 = 5;
 const WEATHER_UPDATE_TIME_MINS: u64 = 30;
 
 pub fn main() -> iced::Result {
