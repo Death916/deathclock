@@ -86,11 +86,11 @@ pub fn update_mlb() -> Vec<Game> {
         );
         mlb_game_struct.update(&home_score, &away_score, period);
         mlb_games_vec.push(mlb_game_struct);
-        println!("Home Team: {}", home_team);
-        println!("Away Team: {}", away_team);
-        println!("Home Score: {}", home_score);
-        println!("Away Score: {}", away_score);
-        println!("Period: {}", period);
+        dbg!("Home Team: {}", home_team);
+        dbg!("Away Team: {}", away_team);
+        dbg!("Home Score: {}", home_score);
+        dbg!("Away Score: {}", away_score);
+        dbg!("Period: {}", period);
     }
 
     mlb_games_vec
@@ -128,12 +128,12 @@ pub fn update_nba() -> Vec<Game> {
         );
         game.update(&home_score, &away_score, period);
         updated_games.push(game);
-        println!("Game ID: {}", game_id);
-        println!("Home Team: {}", home_team);
-        println!("Away Team: {}", away_team);
-        println!("Home Score: {}", home_score);
-        println!("Away Score: {}", away_score);
-        println!("Period: {}", period);
+        dbg!("Game ID: {}", game_id);
+        dbg!("Home Team: {}", home_team);
+        dbg!("Away Team: {}", away_team);
+        dbg!("Home Score: {}", home_score);
+        dbg!("Away Score: {}", away_score);
+        dbg!("Period: {}", period);
     }
     updated_games
 }
@@ -179,11 +179,37 @@ pub fn get_nba_logos() -> HashMap<String, Vec<u8>> {
             .header("User-Agent", "deathclock-app/0.1")
             .call()
             .unwrap();
-        println!("Response {}", response.status());
+        dbg!("Response {}", response.status());
 
         let image_data = response.into_body().read_to_vec().unwrap();
         nba_svg_map.insert(team_name.to_string(), image_data);
-        println!("Downloaded logo for {}", team_name);
+        dbg!("Downloaded logo for {}", team_name);
     }
     nba_svg_map
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_nba_logos() {
+        let nba_logos = get_nba_logos();
+        assert!(!nba_logos.is_empty());
+    }
+    #[test]
+    fn test_get_mlb_logos() {
+        let mlb_logos = get_mlb_logos();
+        assert!(!mlb_logos.is_empty());
+    }
+    #[test]
+    fn test_get_nba_scores() {
+        let nba_scores = update_nba();
+        assert!(!nba_scores.is_empty());
+    }
+    #[test]
+    fn test_get_mlb_scores() {
+        let mlb_scores = update_mlb();
+        assert!(!mlb_scores.is_empty());
+    }
 }
