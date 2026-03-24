@@ -4,6 +4,8 @@ use iced::Element;
 use iced::Fill;
 use iced::widget::{column, container, image, row, scrollable, text};
 use std::collections::HashMap;
+use iced::widget::scrollable::{Direction, Scrollbar};
+
 
 use crate::Message;
 use crate::sports::Game;
@@ -13,7 +15,7 @@ pub fn render_nba_pane<'a>(
     games: &'a [Game],
     logos: &'a HashMap<String, Handle>,
 ) -> Element<'a, Message> {
-    column(games.iter().map(|game| {
+    scrollable(column(games.iter().map(|game| {
         let Some(team1_logo) = logos.get(&game.team1) else {
             return text(format!("Error: Team 1 logo not found for {}", game.team1)).into();
         };
@@ -57,8 +59,8 @@ pub fn render_nba_pane<'a>(
             },
         })
         .into()
-    }))
-    .padding(0)
+    })))
+    .direction(Direction::Vertical(Scrollbar::hidden()))
     .width(50)
     .into()
 }
@@ -119,6 +121,7 @@ pub fn render_mlb_pane<'a>(
         })
         .into()
     })))
+     .direction(Direction::Vertical(Scrollbar::hidden()))
     .into()
 }
 

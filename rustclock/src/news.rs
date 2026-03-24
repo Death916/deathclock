@@ -1,8 +1,7 @@
 use rss::Channel;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::str::FromStr;
-use ureq::http::Response;
+
 
 pub async fn get_news() -> Vec<Channel> {
     let feeds = File::open("../feeds.txt");
