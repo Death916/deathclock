@@ -100,14 +100,4 @@ class News:
         if len(all_entries) > 30:
             all_entries = random.sample(all_entries, 30)
 
-        try:
-            async with aiofiles.open("news.txt", "w") as f:
-                print("Writing news to file...")
-                for entry in all_entries:
-                    await f.write(
-                        f"[{entry['publish_date']}] {entry['source']}: {entry['title']}\n"
-                    )
-        except Exception as e:
-            print(f"Error writing to news.txt: {e}")
-
         return all_entries
