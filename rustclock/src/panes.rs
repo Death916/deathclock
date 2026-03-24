@@ -85,9 +85,9 @@ pub fn render_mlb_pane<'a>(
         container(
             column![
                 row![
-                    image(team1_logo.clone()).width(15).height(15),
+                    image(team1_logo.clone()).width(30).height(30),
                     text(&game.team1).size(20).width(Fill),
-                    image(team2_logo.clone()).width(15).height(15),
+                    image(team2_logo.clone()).width(30).height(30),
                     text(&game.team2).size(20).width(Fill),
                 ],
                 row![
