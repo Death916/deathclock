@@ -1,16 +1,26 @@
 use iced::widget::image::Handle;
-use ureq;
+use reqwest;
 
-pub fn get_weather() -> Option<Handle> {
-    let image = ureq::get("https://v2.wttr.in/Sacramento.png?u0")
-        .header("User-Agent", "deathclock-app/1.0")
-        .call()
+pub async fn get_weather() -> Handle {
+    let image = reqwest::get("https://v2.wttr.in/Sacramento.png?u0")
+        .await
         .unwrap()
-        .into_body()
-        .read_to_vec()
+        .bytes()
+        .await
         .unwrap();
 
     let handle = Some(Handle::from_bytes(image));
+    let handle = handle.unwrap();
+    //TODO better error handling
     dbg!("updating weather");
     handle
 }
+
+#[tokio::test]
+
+    async fn test_get_weather() {
+        let handle = get_weather().await;
+        let handle_type: Handle = handle.clone();
+        assert_eq!(handle_type, handle);
+    }
+

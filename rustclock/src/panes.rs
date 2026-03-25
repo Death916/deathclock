@@ -155,3 +155,4 @@ pub fn render_weather_pane<'a>(
     .center_y(Fill)
     .into()
 }
+

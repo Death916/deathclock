@@ -20,7 +20,7 @@ const WEATHER_UPDATE_TIME_MINS: u64 = 30;
 
 pub fn main() -> iced::Result {
     iced::application(
-        || (RustClock::default(), Task::none()), // Wrap it in a closure
+        || (RustClock::default(), Task::perform(weather::get_weather(), Message::UpdateWeatherImg)), // Wrap it in a closure
         RustClock::update,
         RustClock::view,
     )
@@ -45,7 +45,8 @@ enum Message {
     PaneResized(pane_grid::ResizeEvent),
     RunSportsUpdate,
     UpdateTime,
-    UpdateWeather,
+    RunWeatherUpdate,
+    UpdateWeatherImg(Handle),
 }
 
 #[derive(Debug)]
@@ -62,23 +63,32 @@ struct RustClock {
     weather_handle: Option<Handle>,
 }
 impl RustClock {
-    fn update(&mut self, message: Message) {
+    fn update(&mut self, message: Message) -> iced::Task<Message> {
         match message {
             Message::PaneDragged(pane_grid::DragEvent::Dropped { pane, target }) => {
                 self.panes.drop(pane, target);
+                Task::none()
             }
-            Message::PaneDragged(_) => {}
+            Message::PaneDragged(_) => Task::none(),
+            
             Message::PaneResized(pane_grid::ResizeEvent { split, ratio }) => {
                 self.panes.resize(split, ratio);
+                Task::none()
             }
             Message::RunSportsUpdate => {
                 self.nba_scores = sports::update_nba();
                 self.mlb_scores = sports::update_mlb();
+                Task::none()
             }
             Message::UpdateTime => {
                 self.current_time = Local::now();
+                Task::none()
             }
-            Message::UpdateWeather => self.weather_handle = weather::get_weather(),
+            Message::RunWeatherUpdate => Task::perform(weather::get_weather(), Message::UpdateWeatherImg),
+            Message::UpdateWeatherImg(handle) => {
+                self.weather_handle = Some(handle);
+                Task::none()
+            }
         }
     }
 
@@ -89,7 +99,7 @@ impl RustClock {
             iced::time::every(Duration::from_mins(UPDATE_SPORTS_TIME_MINS))
                 .map(|_| Message::RunSportsUpdate),
             iced::time::every(Duration::from_mins(WEATHER_UPDATE_TIME_MINS))
-                .map(|_| Message::UpdateWeather),
+                .map(|_| Message::RunWeatherUpdate),
         ])
     }
 
@@ -126,6 +136,7 @@ impl Default for RustClock {
             .into_iter()
             .map(|(k, v)| (k, Handle::from_bytes(v)))
             .collect();
+        
 
         RustClock {
             current_time: Local::now(),
@@ -136,7 +147,7 @@ impl Default for RustClock {
             mlb_scores: { sports::update_mlb() },
             mlb_logos,
             nba_logos,
-            weather_handle: weather::get_weather(),
+            weather_handle: None,
             panes: {
                 let config = Configuration::Split {
                     axis: pane_grid::Axis::Horizontal,
