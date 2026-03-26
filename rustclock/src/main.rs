@@ -20,7 +20,12 @@ const WEATHER_UPDATE_TIME_MINS: u64 = 30;
 
 pub fn main() -> iced::Result {
     iced::application(
-        || (RustClock::default(), Task::perform(weather::get_weather(), Message::UpdateWeatherImg)), // Wrap it in a closure
+        || {
+            (
+                RustClock::default(),
+                Task::perform(weather::get_weather(), Message::UpdateWeatherImg),
+            )
+        }, // Wrap it in a closure
         RustClock::update,
         RustClock::view,
     )
@@ -70,7 +75,7 @@ impl RustClock {
                 Task::none()
             }
             Message::PaneDragged(_) => Task::none(),
-            
+
             Message::PaneResized(pane_grid::ResizeEvent { split, ratio }) => {
                 self.panes.resize(split, ratio);
                 Task::none()
@@ -138,7 +143,6 @@ impl Default for RustClock {
             .into_iter()
             .map(|(k, v)| (k, Handle::from_bytes(v)))
             .collect();
-        
 
         RustClock {
             current_time: Local::now(),

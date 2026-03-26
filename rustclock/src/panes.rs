@@ -2,10 +2,9 @@ use chrono::Local;
 use iced::Border;
 use iced::Element;
 use iced::Fill;
+use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{column, container, image, row, scrollable, text};
 use std::collections::HashMap;
-use iced::widget::scrollable::{Direction, Scrollbar};
-
 
 use crate::Message;
 use crate::sports::Game;
@@ -121,7 +120,7 @@ pub fn render_mlb_pane<'a>(
         })
         .into()
     })))
-     .direction(Direction::Vertical(Scrollbar::hidden()))
+    .direction(Direction::Vertical(Scrollbar::hidden()))
     .into()
 }
 
@@ -155,4 +154,3 @@ pub fn render_weather_pane<'a>(
     .center_y(Fill)
     .into()
 }
-

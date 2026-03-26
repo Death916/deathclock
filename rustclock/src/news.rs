@@ -2,7 +2,6 @@ use rss::Channel;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-
 pub async fn get_news() -> Vec<Channel> {
     let feeds = File::open("../feeds.txt");
     let mut feed_vec = Vec::new();

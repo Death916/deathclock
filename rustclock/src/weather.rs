@@ -18,9 +18,8 @@ pub async fn get_weather() -> Handle {
 
 #[tokio::test]
 
-    async fn test_get_weather() {
-        let handle = get_weather().await;
-        let handle_type: Handle = handle.clone();
-        assert_eq!(handle_type, handle);
-    }
-
+async fn test_get_weather() {
+    let handle = get_weather().await;
+    let handle_type: Handle = handle.clone();
+    assert_eq!(handle_type, handle);
+}
