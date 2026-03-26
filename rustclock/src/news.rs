@@ -52,8 +52,18 @@ pub async fn get_news() -> Vec<Channel> {
     news
 }
 
-#[tokio::test]
-async fn test() {
+pub async fn get_news_item(index: usize) -> Option<String> {
+    let news = get_news().await;
+    news.get(index).map(|feed| feed.title().to_string())
+    
+}
+
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_news() {
     let news = get_news().await;
     assert!(news.len() > 0);
+    }
 }

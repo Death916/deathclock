@@ -59,6 +59,7 @@ struct RustClock {
     current_time: DateTime<Local>,
     next_alarm: Option<DateTime<Local>>,
     news: Vec<String>,
+    current_news_index: usize,
     location: String,
     nba_scores: Vec<Game>,
     mlb_scores: Vec<Game>,
@@ -66,6 +67,7 @@ struct RustClock {
     nba_logos: HashMap<String, Handle>,
     mlb_logos: HashMap<String, Handle>,
     weather_handle: Option<Handle>,
+    
 }
 impl RustClock {
     fn update(&mut self, message: Message) -> iced::Task<Message> {
@@ -148,6 +150,7 @@ impl Default for RustClock {
             current_time: Local::now(),
             next_alarm: None,
             news: Vec::new(),
+            current_news_index: 0,
             location: "Sacramento".to_string(),
             nba_scores: { sports::update_nba() },
             mlb_scores: { sports::update_mlb() },
