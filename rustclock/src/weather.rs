@@ -12,7 +12,7 @@ pub async fn get_weather() -> Handle {
     let handle = Some(Handle::from_bytes(image));
     let handle = handle.unwrap();
     //TODO better error handling
-    dbg!("updating weather");
+    dbg!(format!("{}: updating weather", chrono::Local::now()));
     handle
 }
 

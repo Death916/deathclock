@@ -86,11 +86,11 @@ pub fn update_mlb() -> Vec<Game> {
         );
         mlb_game_struct.update(&home_score, &away_score, period);
         mlb_games_vec.push(mlb_game_struct);
-        dbg!("Home Team: {}", home_team);
-        dbg!("Away Team: {}", away_team);
-        dbg!("Home Score: {}", home_score);
-        dbg!("Away Score: {}", away_score);
-        dbg!("Period: {}", period);
+        dbg!(home_team);
+        dbg!(away_team);
+        dbg!(home_score);
+        dbg!(away_score);
+        dbg!(period);
     }
 
     mlb_games_vec
@@ -128,12 +128,12 @@ pub fn update_nba() -> Vec<Game> {
         );
         game.update(&home_score, &away_score, period);
         updated_games.push(game);
-        dbg!("Game ID: {}", game_id);
-        dbg!("Home Team: {}", home_team);
-        dbg!("Away Team: {}", away_team);
-        dbg!("Home Score: {}", home_score);
-        dbg!("Away Score: {}", away_score);
-        dbg!("Period: {}", period);
+        dbg!(game_id);
+        dbg!(home_team);
+        dbg!(away_team);
+        dbg!(home_score);
+        dbg!(away_score);
+        dbg!(period);
     }
     updated_games
 }
@@ -179,11 +179,11 @@ pub fn get_nba_logos() -> HashMap<String, Vec<u8>> {
             .header("User-Agent", "deathclock-app/0.1")
             .call()
             .unwrap();
-        dbg!("Response {}", response.status());
+        dbg!(chrono::Local::now(), response.status());
 
         let image_data = response.into_body().read_to_vec().unwrap();
         nba_svg_map.insert(team_name.to_string(), image_data);
-        dbg!("Downloaded logo for {}", team_name);
+        dbg!("Downloaded logo for ", team_name);
     }
     nba_svg_map
 }

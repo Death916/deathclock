@@ -84,7 +84,9 @@ impl RustClock {
                 self.current_time = Local::now();
                 Task::none()
             }
-            Message::RunWeatherUpdate => Task::perform(weather::get_weather(), Message::UpdateWeatherImg),
+            Message::RunWeatherUpdate => {
+                Task::perform(weather::get_weather(), Message::UpdateWeatherImg)
+            }
             Message::UpdateWeatherImg(handle) => {
                 self.weather_handle = Some(handle);
                 Task::none()
