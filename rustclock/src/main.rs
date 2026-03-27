@@ -67,7 +67,6 @@ struct RustClock {
     nba_logos: HashMap<String, Handle>,
     mlb_logos: HashMap<String, Handle>,
     weather_handle: Option<Handle>,
-    
 }
 impl RustClock {
     fn update(&mut self, message: Message) -> iced::Task<Message> {
