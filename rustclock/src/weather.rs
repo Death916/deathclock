@@ -1,8 +1,15 @@
 use iced::widget::image::Handle;
-use reqwest;
+use reqwest::Client;
 
 pub async fn get_weather() -> Handle {
-    let image = reqwest::get("https://v2.wttr.in/Sacramento.png?u0")
+    let client = Client::builder()
+        .user_agent("deathclock-app/1.0")
+        .build()
+        .unwrap();
+
+    let image = client
+        .get("https://v2.wttr.in/Sacramento.png?u0")
+        .send()
         .await
         .unwrap()
         .bytes()

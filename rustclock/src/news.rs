@@ -88,4 +88,3 @@ mod tests {
         dbg!(news_item);
     }
 }
-
