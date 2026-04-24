@@ -17,6 +17,7 @@ use std::collections::HashMap;
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
 const UPDATE_SPORTS_TIME_MINS: u64 = 5;
 const WEATHER_UPDATE_TIME_MINS: u64 = 30;
+const NEWS_UPDATE_TIME_MINS: u64 = 15;
 
 pub fn main() -> iced::Result {
     iced::application(

@@ -70,7 +70,7 @@ pub fn render_nfl_pane<'a>() -> Element<'a, Message> {
 }
 
 pub fn render_news_pane<'a>() -> Element<'a, Message> {
-    text("News").into()
+    news
 }
 
 pub fn render_mlb_pane<'a>(
