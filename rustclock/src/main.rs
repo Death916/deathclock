@@ -53,6 +53,9 @@ enum Message {
     UpdateTime,
     RunWeatherUpdate,
     UpdateWeatherImg(Handle),
+    RunNewsUpdate(Vec<String>),
+    IncNewsIndex,
+    
 }
 
 #[derive(Debug)]
@@ -60,7 +63,7 @@ struct RustClock {
     current_time: DateTime<Local>,
     next_alarm: Option<DateTime<Local>>,
     news: Vec<String>,
-    current_news_index: usize,
+    news_index: usize,
     location: String,
     nba_scores: Vec<Game>,
     mlb_scores: Vec<Game>,
@@ -96,6 +99,15 @@ impl RustClock {
             }
             Message::UpdateWeatherImg(handle) => {
                 self.weather_handle = Some(handle);
+                Task::none()
+            }
+            
+            Message::RunNewsUpdate(news) => {
+                self.news = news::get_news();
+                Task::none()
+            }
+            Message::IncNewsIndex => {
+                self.news_index = (self.news_index + 1) % self.news.len();
                 Task::none()
             }
         }
