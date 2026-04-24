@@ -167,11 +167,16 @@ impl Default for RustClock {
                         a: Box::new(Configuration::Pane(PaneType::NbaPane)),
                         b: Box::new(Configuration::Split {
                             axis: pane_grid::Axis::Vertical,
-                            ratio: 0.65,
-                            a: Box::new(Configuration::Pane(PaneType::Weather)),
+                            ratio: 0.66,
+                            a: Box::new(Configuration::Split {
+                                axis: pane_grid::Axis::Horizontal,
+                                ratio: 0.85,
+                                a: Box::new(Configuration::Pane(PaneType::Weather)),
+                                b: Box::new(Configuration::Pane(PaneType::News)),
+                            }),
                             b: Box::new(Configuration::Split {
                                 axis: pane_grid::Axis::Horizontal,
-                                ratio: 0.7,
+                                ratio: 0.5,
                                 a: Box::new(Configuration::Pane(PaneType::MlbPane)),
                                 b: Box::new(Configuration::Pane(PaneType::NflPane)),
                             }),
