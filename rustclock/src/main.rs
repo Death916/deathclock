@@ -102,12 +102,13 @@ impl RustClock {
                 Task::none()
             }
             
-            Message::RunNewsUpdate(news) => {
-                self.news = news::get_news();
-                Task::none()
+            Message::RunNewsUpdate => {
+                Task::perform(news::get_news(), Message::IncNewsIndex)
             }
-            Message::IncNewsIndex => {
+            Message::IncNewsIndex(news) => {
+                self.news = news;
                 self.news_index = (self.news_index + 1) % self.news.len();
+                
                 Task::none()
             }
         }
@@ -121,6 +122,8 @@ impl RustClock {
                 .map(|_| Message::RunSportsUpdate),
             iced::time::every(Duration::from_mins(WEATHER_UPDATE_TIME_MINS))
                 .map(|_| Message::RunWeatherUpdate),
+            iced::time::every(Duration::from_mins(NEWS_UPDATE_TIME_MINS))
+                .map(|_| Message::RunNewsUpdate),
         ])
     }
 
