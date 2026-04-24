@@ -53,9 +53,8 @@ enum Message {
     UpdateTime,
     RunWeatherUpdate,
     UpdateWeatherImg(Handle),
-    RunNewsUpdate(Vec<String>),
-    IncNewsIndex,
-    
+    RunNewsUpdate,
+    IncNewsIndex(Vec<String>),
 }
 
 #[derive(Debug)]
@@ -101,14 +100,14 @@ impl RustClock {
                 self.weather_handle = Some(handle);
                 Task::none()
             }
-            
+
             Message::RunNewsUpdate => {
                 Task::perform(news::get_news(), Message::IncNewsIndex)
             }
             Message::IncNewsIndex(news) => {
                 self.news = news;
                 self.news_index = (self.news_index + 1) % self.news.len();
-                
+
                 Task::none()
             }
         }
