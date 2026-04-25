@@ -1,11 +1,10 @@
-use rss::{Channel, Item};
+use rss::Channel;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 pub async fn get_news() -> Vec<String> {
     let feeds = File::open("../feeds.txt");
     let mut source_feed_vec = Vec::new();
-    let mut channel_vec: Vec<Channel> = Vec::new();
     let mut news = Vec::new();
     match feeds {
         Ok(file) => {
@@ -33,14 +32,13 @@ pub async fn get_news() -> Vec<String> {
                     // dbg!(&channel);
                     match channel {
                         Ok(feed) => {
-                            channel_vec.push(feed);
-                            for source in channel_vec.iter().map(|item| item.clone().into_items()) {
-                                for feed in source[1..].iter() {
-                                    let source = feed.title();
-                                    if let Some(source) = source {
-                                        let headline = source.to_string();
-                                        news.push(headline);
-                                    }
+                            let channel_title = feed.title().to_string();
+                            let items = feed.into_items();
+                            for item in items.iter().skip(1) {
+                                let title = item.title();
+                                if let Some(title) = title {
+                                    let headline = format!("{}: {}", channel_title, title);
+                                    news.push(headline);
                                 }
                             }
                         }
@@ -60,7 +58,7 @@ pub async fn get_news() -> Vec<String> {
     news
 }
 
-pub async fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
+pub fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
     if let Some(headline) = news_feeds.get(index) {
         let headline = headline.to_string();
         headline
@@ -84,7 +82,7 @@ mod tests {
     async fn test_get_news_item() {
         let index = 2;
         let news = get_news().await;
-        let news_item = get_news_item(index, news).await;
+        let news_item = get_news_item(index, &news);
         dbg!(news_item);
     }
 }
