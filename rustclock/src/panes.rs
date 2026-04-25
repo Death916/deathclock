@@ -7,6 +7,7 @@ use iced::widget::{column, container, image, row, scrollable, text};
 use std::collections::HashMap;
 
 use crate::Message;
+use crate::news::get_news_item;
 use crate::sports::Game;
 
 use iced::widget::image::Handle;
@@ -69,8 +70,13 @@ pub fn render_nfl_pane<'a>() -> Element<'a, Message> {
     text("NFL").into()
 }
 
-pub fn render_news_pane<'a>() -> Element<'a, Message> {
-    
+pub fn render_news_pane<'a>(news: &'a Vec<String>, news_index: usize) -> Element<'a, Message> {
+    let news_item = get_news_item(news_index, news);
+    container(column![text("News"), text(news_item).size(16).width(Fill),])
+        .width(100)
+        .height(100)
+        .align_x(iced::Alignment::Center)
+        .into()
 }
 
 pub fn render_mlb_pane<'a>(

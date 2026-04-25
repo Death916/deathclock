@@ -17,7 +17,7 @@ use std::collections::HashMap;
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
 const UPDATE_SPORTS_TIME_MINS: u64 = 5;
 const WEATHER_UPDATE_TIME_MINS: u64 = 30;
-const NEWS_UPDATE_TIME_MINS: u64 = 15;
+const NEWS_UPDATE_TIME_SECS: u64 = 15;
 
 pub fn main() -> iced::Result {
     iced::application(
@@ -25,8 +25,9 @@ pub fn main() -> iced::Result {
             (
                 RustClock::default(),
                 Task::perform(weather::get_weather(), Message::UpdateWeatherImg),
+                
             )
-        }, // Wrap it in a closure
+        }, 
         RustClock::update,
         RustClock::view,
     )
@@ -101,9 +102,7 @@ impl RustClock {
                 Task::none()
             }
 
-            Message::RunNewsUpdate => {
-                Task::perform(news::get_news(), Message::IncNewsIndex)
-            }
+            Message::RunNewsUpdate => Task::perform(news::get_news(), Message::IncNewsIndex),
             Message::IncNewsIndex(news) => {
                 self.news = news;
                 self.news_index = (self.news_index + 1) % self.news.len();
@@ -121,7 +120,7 @@ impl RustClock {
                 .map(|_| Message::RunSportsUpdate),
             iced::time::every(Duration::from_mins(WEATHER_UPDATE_TIME_MINS))
                 .map(|_| Message::RunWeatherUpdate),
-            iced::time::every(Duration::from_mins(NEWS_UPDATE_TIME_MINS))
+            iced::time::every(Duration::from_secs(NEWS_UPDATE_TIME_SECS))
                 .map(|_| Message::RunNewsUpdate),
         ])
     }
@@ -131,7 +130,7 @@ impl RustClock {
             let content: Element<'_, Message> = match pane_state {
                 PaneType::NbaPane => panes::render_nba_pane(&state.nba_scores, &state.nba_logos),
                 PaneType::NflPane => panes::render_nfl_pane(),
-                PaneType::News => panes::render_news_pane(),
+                PaneType::News => panes::render_news_pane(&state.news, state.news_index),
                 PaneType::MlbPane => panes::render_mlb_pane(&state.mlb_scores, &state.mlb_logos),
                 PaneType::Clock => panes::render_clock_pane(),
                 PaneType::Weather => {
@@ -164,7 +163,7 @@ impl Default for RustClock {
             current_time: Local::now(),
             next_alarm: None,
             news: Vec::new(),
-            current_news_index: 0,
+            news_index: 0,
             location: "Sacramento".to_string(),
             nba_scores: { sports::update_nba() },
             mlb_scores: { sports::update_mlb() },

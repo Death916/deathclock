@@ -60,7 +60,7 @@ pub async fn get_news() -> Vec<String> {
     news
 }
 
-pub async fn get_news_item(index: usize, news_feeds: Vec<String>) -> String {
+pub async fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
     if let Some(headline) = news_feeds.get(index) {
         let headline = headline.to_string();
         headline
