@@ -17,17 +17,20 @@ use std::collections::HashMap;
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
 const UPDATE_SPORTS_TIME_MINS: u64 = 5;
 const WEATHER_UPDATE_TIME_MINS: u64 = 30;
-const NEWS_UPDATE_TIME_SECS: u64 = 15;
+const NEWS_UPDATE_TIME_MINS: u64 = 15;
+const NEWS_ROTATE_TIME_SECS: u64 = 15;
 
 pub fn main() -> iced::Result {
     iced::application(
         || {
             (
                 RustClock::default(),
-                Task::perform(weather::get_weather(), Message::UpdateWeatherImg),
-                
+                Task::batch(vec![
+                    Task::perform(weather::get_weather(), Message::UpdateWeatherImg),
+                    Task::perform(news::get_news(), Message::UpdateNews),
+                ]),
             )
-        }, 
+        },
         RustClock::update,
         RustClock::view,
     )
@@ -55,7 +58,8 @@ enum Message {
     RunWeatherUpdate,
     UpdateWeatherImg(Handle),
     RunNewsUpdate,
-    IncNewsIndex(Vec<String>),
+    UpdateNews(Vec<String>),
+    IncNewsIndex,
 }
 
 #[derive(Debug)]
@@ -102,11 +106,14 @@ impl RustClock {
                 Task::none()
             }
 
-            Message::RunNewsUpdate => Task::perform(news::get_news(), Message::IncNewsIndex),
-            Message::IncNewsIndex(news) => {
+            Message::RunNewsUpdate => Task::perform(news::get_news(), Message::UpdateNews),
+            Message::UpdateNews(news) => {
                 self.news = news;
-                self.news_index = (self.news_index + 1) % self.news.len();
 
+                Task::none()
+            }
+            Message::IncNewsIndex => {
+                self.news_index = (self.news_index + 1) % self.news.len();
                 Task::none()
             }
         }
@@ -120,8 +127,10 @@ impl RustClock {
                 .map(|_| Message::RunSportsUpdate),
             iced::time::every(Duration::from_mins(WEATHER_UPDATE_TIME_MINS))
                 .map(|_| Message::RunWeatherUpdate),
-            iced::time::every(Duration::from_secs(NEWS_UPDATE_TIME_SECS))
+            iced::time::every(Duration::from_mins(NEWS_UPDATE_TIME_MINS))
                 .map(|_| Message::RunNewsUpdate),
+            iced::time::every(Duration::from_secs(NEWS_ROTATE_TIME_SECS))
+                .map(|_| Message::IncNewsIndex),
         ])
     }
 

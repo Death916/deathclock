@@ -22,6 +22,7 @@ pub async fn get_news() -> Vec<String> {
 
     for feed in source_feed_vec.iter() {
         let feed_url = feed.as_str();
+        dbg!(feed_url);
         let content = reqwest::get(feed_url).await;
 
         match content {
@@ -34,7 +35,7 @@ pub async fn get_news() -> Vec<String> {
                         Ok(feed) => {
                             let channel_title = feed.title().to_string();
                             let items = feed.into_items();
-                            for item in items.iter().skip(1) {
+                            for item in items.iter().take(10) {
                                 let title = item.title();
                                 if let Some(title) = title {
                                     let headline = format!("{}: {}", channel_title, title);
