@@ -16,7 +16,8 @@ use std::collections::HashMap;
 
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
 const UPDATE_SPORTS_TIME_MINS: u64 = 5;
-const WEATHER_UPDATE_TIME_MINS: u64 = 30;
+const UPDATE_SPORTS_TIME_OFF_PEAK_MINS: u64 = 30; // TODO!   add this
+const WEATHER_UPDATE_TIME_MINS: u64 = 15; // increase when done testing
 const NEWS_UPDATE_TIME_MINS: u64 = 15;
 const NEWS_ROTATE_TIME_SECS: u64 = 15;
 
@@ -100,6 +101,7 @@ impl RustClock {
             }
             Message::RunWeatherUpdate => {
                 Task::perform(weather::get_weather(), Message::UpdateWeatherImg)
+                
             }
             Message::UpdateWeatherImg(handle) => {
                 self.weather_handle = Some(handle);
@@ -107,9 +109,9 @@ impl RustClock {
             }
 
             Message::RunNewsUpdate => Task::perform(news::get_news(), Message::UpdateNews),
+            
             Message::UpdateNews(news) => {
                 self.news = news;
-
                 Task::none()
             }
             Message::IncNewsIndex => {
