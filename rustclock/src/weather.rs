@@ -1,16 +1,35 @@
 use iced::widget::image::Handle;
-use ureq;
+use reqwest::Client;
 
-pub fn get_weather() -> Option<Handle> {
-    let image = ureq::get("https://v2.wttr.in/Sacramento.png?u0")
-        .header("User-Agent", "deathclock-app/1.0")
-        .call()
+pub async fn get_weather() -> Handle {
+    let client = Client::builder()
+        .user_agent("deathclock-app/1.0")
+        .build()
+        .unwrap();
+
+    let image = client
+        .get("https://v2.wttr.in/Sacramento.png?u0")
+        .send()
+        .await
         .unwrap()
-        .into_body()
-        .read_to_vec()
+        .bytes()
+        .await
         .unwrap();
 
     let handle = Some(Handle::from_bytes(image));
-    dbg!("updating weather");
+    let handle = handle.unwrap();
+    //TODO better error handling
+    dbg!(format!("{}: updating weather", chrono::Local::now()));
     handle
+}
+
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_weather() {
+        let handle = get_weather().await;
+        let handle_type: Handle = handle.clone();
+        assert_eq!(handle_type, handle);
+    }
 }

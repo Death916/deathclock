@@ -16,16 +16,28 @@ use std::collections::HashMap;
 
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
 const UPDATE_SPORTS_TIME_MINS: u64 = 5;
-const WEATHER_UPDATE_TIME_MINS: u64 = 30;
+const UPDATE_SPORTS_TIME_OFF_PEAK_MINS: u64 = 30; // TODO!   add this
+const WEATHER_UPDATE_TIME_MINS: u64 = 15; // increase when done testing
+const NEWS_UPDATE_TIME_MINS: u64 = 15;
+const NEWS_ROTATE_TIME_SECS: u64 = 15;
 
 pub fn main() -> iced::Result {
     iced::application(
-        || (RustClock::default(), Task::none()), // Wrap it in a closure
+        || {
+            (
+                RustClock::default(),
+                Task::batch(vec![
+                    Task::perform(weather::get_weather(), Message::UpdateWeatherImg),
+                    Task::perform(news::get_news(), Message::UpdateNews),
+                ]),
+            )
+        },
         RustClock::update,
         RustClock::view,
     )
     .title("RustClock")
     .subscription(RustClock::subscription)
+    .theme(|state: &RustClock| state.theme.clone())
     .run()
 }
 
@@ -45,7 +57,11 @@ enum Message {
     PaneResized(pane_grid::ResizeEvent),
     RunSportsUpdate,
     UpdateTime,
-    UpdateWeather,
+    RunWeatherUpdate,
+    UpdateWeatherImg(Handle),
+    RunNewsUpdate,
+    UpdateNews(Vec<String>),
+    IncNewsIndex,
 }
 
 #[derive(Debug)]
@@ -53,6 +69,7 @@ struct RustClock {
     current_time: DateTime<Local>,
     next_alarm: Option<DateTime<Local>>,
     news: Vec<String>,
+    news_index: usize,
     location: String,
     nba_scores: Vec<Game>,
     mlb_scores: Vec<Game>,
@@ -60,25 +77,48 @@ struct RustClock {
     nba_logos: HashMap<String, Handle>,
     mlb_logos: HashMap<String, Handle>,
     weather_handle: Option<Handle>,
+    theme: iced::Theme,
 }
 impl RustClock {
-    fn update(&mut self, message: Message) {
+    fn update(&mut self, message: Message) -> iced::Task<Message> {
         match message {
             Message::PaneDragged(pane_grid::DragEvent::Dropped { pane, target }) => {
                 self.panes.drop(pane, target);
+                Task::none()
             }
-            Message::PaneDragged(_) => {}
+            Message::PaneDragged(_) => Task::none(),
+
             Message::PaneResized(pane_grid::ResizeEvent { split, ratio }) => {
                 self.panes.resize(split, ratio);
+                Task::none()
             }
             Message::RunSportsUpdate => {
                 self.nba_scores = sports::update_nba();
                 self.mlb_scores = sports::update_mlb();
+                Task::none()
             }
             Message::UpdateTime => {
                 self.current_time = Local::now();
+                Task::none()
             }
-            Message::UpdateWeather => self.weather_handle = weather::get_weather(),
+            Message::RunWeatherUpdate => {
+                Task::perform(weather::get_weather(), Message::UpdateWeatherImg)
+            }
+            Message::UpdateWeatherImg(handle) => {
+                self.weather_handle = Some(handle);
+                Task::none()
+            }
+
+            Message::RunNewsUpdate => Task::perform(news::get_news(), Message::UpdateNews),
+
+            Message::UpdateNews(news) => {
+                self.news = news;
+                Task::none()
+            }
+            Message::IncNewsIndex => {
+                self.news_index = (self.news_index + 1) % self.news.len();
+                Task::none()
+            }
         }
     }
 
@@ -89,7 +129,11 @@ impl RustClock {
             iced::time::every(Duration::from_mins(UPDATE_SPORTS_TIME_MINS))
                 .map(|_| Message::RunSportsUpdate),
             iced::time::every(Duration::from_mins(WEATHER_UPDATE_TIME_MINS))
-                .map(|_| Message::UpdateWeather),
+                .map(|_| Message::RunWeatherUpdate),
+            iced::time::every(Duration::from_mins(NEWS_UPDATE_TIME_MINS))
+                .map(|_| Message::RunNewsUpdate),
+            iced::time::every(Duration::from_secs(NEWS_ROTATE_TIME_SECS))
+                .map(|_| Message::IncNewsIndex),
         ])
     }
 
@@ -98,7 +142,7 @@ impl RustClock {
             let content: Element<'_, Message> = match pane_state {
                 PaneType::NbaPane => panes::render_nba_pane(&state.nba_scores, &state.nba_logos),
                 PaneType::NflPane => panes::render_nfl_pane(),
-                PaneType::News => panes::render_news_pane(),
+                PaneType::News => panes::render_news_pane(&state.news, state.news_index),
                 PaneType::MlbPane => panes::render_mlb_pane(&state.mlb_scores, &state.mlb_logos),
                 PaneType::Clock => panes::render_clock_pane(),
                 PaneType::Weather => {
@@ -131,12 +175,14 @@ impl Default for RustClock {
             current_time: Local::now(),
             next_alarm: None,
             news: Vec::new(),
+            news_index: 0,
             location: "Sacramento".to_string(),
             nba_scores: { sports::update_nba() },
             mlb_scores: { sports::update_mlb() },
             mlb_logos,
             nba_logos,
-            weather_handle: weather::get_weather(),
+            weather_handle: None,
+            theme: iced::Theme::TokyoNight,
             panes: {
                 let config = Configuration::Split {
                     axis: pane_grid::Axis::Horizontal,
@@ -148,11 +194,16 @@ impl Default for RustClock {
                         a: Box::new(Configuration::Pane(PaneType::NbaPane)),
                         b: Box::new(Configuration::Split {
                             axis: pane_grid::Axis::Vertical,
-                            ratio: 0.65,
-                            a: Box::new(Configuration::Pane(PaneType::Weather)),
+                            ratio: 0.66,
+                            a: Box::new(Configuration::Split {
+                                axis: pane_grid::Axis::Horizontal,
+                                ratio: 0.85,
+                                a: Box::new(Configuration::Pane(PaneType::Weather)),
+                                b: Box::new(Configuration::Pane(PaneType::News)),
+                            }),
                             b: Box::new(Configuration::Split {
                                 axis: pane_grid::Axis::Horizontal,
-                                ratio: 0.7,
+                                ratio: 0.85, //fix later when all sports active TODO
                                 a: Box::new(Configuration::Pane(PaneType::MlbPane)),
                                 b: Box::new(Configuration::Pane(PaneType::NflPane)),
                             }),
