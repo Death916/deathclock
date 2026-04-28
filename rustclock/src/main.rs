@@ -37,6 +37,7 @@ pub fn main() -> iced::Result {
     )
     .title("RustClock")
     .subscription(RustClock::subscription)
+    .theme(|state: &RustClock| state.theme.clone())
     .run()
 }
 
@@ -76,6 +77,7 @@ struct RustClock {
     nba_logos: HashMap<String, Handle>,
     mlb_logos: HashMap<String, Handle>,
     weather_handle: Option<Handle>,
+    theme: iced::Theme,
 }
 impl RustClock {
     fn update(&mut self, message: Message) -> iced::Task<Message> {
@@ -101,7 +103,6 @@ impl RustClock {
             }
             Message::RunWeatherUpdate => {
                 Task::perform(weather::get_weather(), Message::UpdateWeatherImg)
-                
             }
             Message::UpdateWeatherImg(handle) => {
                 self.weather_handle = Some(handle);
@@ -109,7 +110,7 @@ impl RustClock {
             }
 
             Message::RunNewsUpdate => Task::perform(news::get_news(), Message::UpdateNews),
-            
+
             Message::UpdateNews(news) => {
                 self.news = news;
                 Task::none()
@@ -181,6 +182,7 @@ impl Default for RustClock {
             mlb_logos,
             nba_logos,
             weather_handle: None,
+            theme: iced::Theme::TokyoNight,
             panes: {
                 let config = Configuration::Split {
                     axis: pane_grid::Axis::Horizontal,
@@ -201,7 +203,7 @@ impl Default for RustClock {
                             }),
                             b: Box::new(Configuration::Split {
                                 axis: pane_grid::Axis::Horizontal,
-                                ratio: 0.5,
+                                ratio: 0.85, //fix later when all sports active TODO
                                 a: Box::new(Configuration::Pane(PaneType::MlbPane)),
                                 b: Box::new(Configuration::Pane(PaneType::NflPane)),
                             }),
