@@ -3,14 +3,14 @@ use iced::Border;
 use iced::Element;
 use iced::Fill;
 use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{column, container, image, row, scrollable, text};
+use iced::widget::{column, container, image, pick_list, row, scrollable, text};
 use std::collections::HashMap;
 
 use crate::Message;
 use crate::news::get_news_item;
 use crate::sports::Game;
 
-use iced::widget::image::Handle;
+use iced::widget::image::{Handle, Viewer};
 
 pub fn render_nba_pane<'a>(
     games: &'a [Game],
@@ -130,8 +130,10 @@ pub fn render_mlb_pane<'a>(
     .direction(Direction::Vertical(Scrollbar::hidden()))
     .into()
 }
-
+///
 pub fn render_clock_pane<'a>() -> Element<'a, Message> {
+    let alarm_hour = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+ //   let alarm = pick_list().placeholder("Set Alarm");
     container(row![
         text(Local::now().format("%m/%d %H:%M:%S").to_string()).size(30)
     ])
@@ -149,10 +151,10 @@ pub fn render_weather_pane<'a>(
     container(
         column![
             text("Weather").size(50),
-            image(weather_img.clone()).width(Fill),
+            iced::widget::image::viewer(weather_img.clone()).width(Fill).height(Fill).max_scale(20.0).min_scale(5.0).content_fit(iced::ContentFit::Cover),
             text(location).size(30),
         ]
-        .padding(5)
+        .padding(0)
         .align_x(iced::Alignment::Center),
     )
     .width(Fill)

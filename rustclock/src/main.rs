@@ -3,6 +3,7 @@ mod news;
 mod panes;
 mod sports;
 mod weather;
+mod alarm;
 use chrono::{DateTime, Local};
 use iced::Element;
 use iced::Subscription;
