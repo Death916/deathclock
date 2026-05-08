@@ -8,7 +8,7 @@ pub async fn get_weather() -> Handle {
         .unwrap();
 
     let image = client
-        .get("https://v2.wttr.in/Sacramento.png?u0T")
+        .get("https://wttr.in/Sacramento.png?")
         .send()
         .await
         .unwrap()

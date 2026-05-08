@@ -151,7 +151,7 @@ pub fn render_weather_pane<'a>(
     container(
         column![
             text("Weather").size(50),
-            iced::widget::image::viewer(weather_img.clone()).width(Fill).height(Fill).max_scale(20.0).min_scale(5.0).content_fit(iced::ContentFit::Cover),
+            iced::widget::image::viewer(weather_img.clone()).width(Fill).height(Fill).max_scale(20.0).min_scale(2.0).content_fit(iced::ContentFit::Contain),
             text(location).size(30),
         ]
         .padding(0)
