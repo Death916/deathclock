@@ -5,6 +5,7 @@ mod sports;
 mod weather;
 mod alarm;
 use chrono::{DateTime, Local};
+use iced_webview::Engine;
 use iced::Element;
 use iced::Subscription;
 use iced::Task;
@@ -12,8 +13,12 @@ use iced::time::Duration;
 use iced::widget::image::Handle;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
+use iced_webview::{WebView, PageType, Action};
 use sports::Game;
 use std::collections::HashMap;
+use weather::WeatherType;
+
+type EngineType = iced_webview::Cef;
 
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
 const UPDATE_SPORTS_TIME_MINS: u64 = 5;
@@ -28,7 +33,7 @@ pub fn main() -> iced::Result {
             (
                 RustClock::default(),
                 Task::batch(vec![
-                    Task::perform(weather::get_weather(), Message::UpdateWeatherImg),
+                    Task::perform(weather::get_weather_image(), Message::UpdateWeatherImg),
                     Task::perform(news::get_news(), Message::UpdateNews),
                 ]),
             )
@@ -79,6 +84,9 @@ struct RustClock {
     mlb_logos: HashMap<String, Handle>,
     weather_handle: Option<Handle>,
     theme: iced::Theme,
+    weather_type: WeatherType,
+    webview: Option<WebView<Engine, Message>>,
+    ready: bool,
 }
 impl RustClock {
     fn update(&mut self, message: Message) -> iced::Task<Message> {
@@ -103,7 +111,7 @@ impl RustClock {
                 Task::none()
             }
             Message::RunWeatherUpdate => {
-                Task::perform(weather::get_weather(), Message::UpdateWeatherImg)
+                Task::perform(weather::get_weather_image(), Message::UpdateWeatherImg)
             }
             Message::UpdateWeatherImg(handle) => {
                 self.weather_handle = Some(handle);
@@ -156,6 +164,8 @@ impl RustClock {
         .on_resize(10, Message::PaneResized)
         .into()
     }
+
+   
 }
 
 impl Default for RustClock {
@@ -172,6 +182,15 @@ impl Default for RustClock {
             .map(|(k, v)| (k, Handle::from_bytes(v)))
             .collect();
 
+        let weather_type = WeatherType::Wttr;
+
+        let webview = match weather_type {
+            WeatherType::Wttr => Some(WebView::new()
+                .on_create_view(Message::ViewCreated)
+                .on_action(Message::WebView)),
+            WeatherType::None => None,
+        };
+
         RustClock {
             current_time: Local::now(),
             next_alarm: None,
@@ -184,6 +203,9 @@ impl Default for RustClock {
             nba_logos,
             weather_handle: None,
             theme: iced::Theme::TokyoNight,
+            weather_type,
+            webview,
+            ready: false,
             panes: {
                 let config = Configuration::Split {
                     axis: pane_grid::Axis::Horizontal,

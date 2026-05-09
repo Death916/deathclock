@@ -5,6 +5,7 @@ use iced::Fill;
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::{column, container, image, pick_list, row, scrollable, text};
 use std::collections::HashMap;
+use iced_webview::{Action, PageType, WebView};
 
 use crate::Message;
 use crate::news::get_news_item;
