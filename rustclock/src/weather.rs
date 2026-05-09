@@ -1,10 +1,7 @@
 use iced::widget::image::Handle;
 use reqwest::Client;
 
-enum WeatherType {
-    Wttr,
-    WeatherStar,
-}
+
 
 pub async fn get_weather_image() -> Handle {
     let client = Client::builder()
@@ -29,7 +26,6 @@ pub async fn get_weather_image() -> Handle {
     handle
 }
 
-pub async fn get_weatherstar()
 
 mod tests {
     use super::*;

@@ -1,11 +1,10 @@
 // #![allow(dead_code)]
+mod alarm;
 mod news;
 mod panes;
 mod sports;
 mod weather;
-mod alarm;
 use chrono::{DateTime, Local};
-use iced_webview::Engine;
 use iced::Element;
 use iced::Subscription;
 use iced::Task;
@@ -13,12 +12,12 @@ use iced::time::Duration;
 use iced::widget::image::Handle;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
-use iced_webview::{WebView, PageType, Action};
+
+use iced_webview::{Action, PageType, WebView};
 use sports::Game;
 use std::collections::HashMap;
-use weather::WeatherType;
 
-type EngineType = iced_webview::Cef;
+type Engine = iced_webview::Cef;
 
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
 const UPDATE_SPORTS_TIME_MINS: u64 = 5;
@@ -26,17 +25,27 @@ const UPDATE_SPORTS_TIME_OFF_PEAK_MINS: u64 = 30; // TODO!   add this
 const WEATHER_UPDATE_TIME_MINS: u64 = 15; // increase when done testing
 const NEWS_UPDATE_TIME_MINS: u64 = 15;
 const NEWS_ROTATE_TIME_SECS: u64 = 15;
+const WEATHER_TYPE: WeatherType = WeatherType::WeatherStar;
+
 
 pub fn main() -> iced::Result {
+    if iced_webview::cef_subprocess_check() {
+        return Ok(());
+    }
     iced::application(
         || {
-            (
-                RustClock::default(),
-                Task::batch(vec![
-                    Task::perform(weather::get_weather_image(), Message::UpdateWeatherImg),
-                    Task::perform(news::get_news(), Message::UpdateNews),
-                ]),
-            )
+            let mut tasks = vec![
+                Task::perform(weather::get_weather_image(), Message::UpdateWeatherImg),
+                Task::perform(news::get_news(), Message::UpdateNews),
+            ];
+
+            if WEATHER_TYPE == WeatherType::WeatherStar {
+                tasks.push(Task::done(Message::WebView(Action::CreateView(
+                    PageType::Url("https://weatherstar.netbymatt.com/".to_string()),
+                ))));
+            }
+
+            (RustClock::default(), Task::batch(tasks))
         },
         RustClock::update,
         RustClock::view,
@@ -57,6 +66,12 @@ enum PaneType {
     News,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+enum WeatherType {
+    Wttr,
+    WeatherStar,
+}
+
 #[derive(Debug, Clone)]
 enum Message {
     PaneDragged(pane_grid::DragEvent),
@@ -68,9 +83,10 @@ enum Message {
     RunNewsUpdate,
     UpdateNews(Vec<String>),
     IncNewsIndex,
+    ViewCreated,
+    WebView(Action),
 }
 
-#[derive(Debug)]
 struct RustClock {
     current_time: DateTime<Local>,
     next_alarm: Option<DateTime<Local>>,
@@ -128,6 +144,18 @@ impl RustClock {
                 self.news_index = (self.news_index + 1) % self.news.len();
                 Task::none()
             }
+            Message::WebView(action) => self
+                .webview
+                .as_mut()
+                .expect("WebView not initialized")
+                .update(action),
+            Message::ViewCreated => {
+                self.ready = true;
+                self.webview
+                    .as_mut()
+                    .expect("WebView not initialized")
+                    .update(Action::ChangeView(0))
+            }
         }
     }
 
@@ -143,6 +171,9 @@ impl RustClock {
                 .map(|_| Message::RunNewsUpdate),
             iced::time::every(Duration::from_secs(NEWS_ROTATE_TIME_SECS))
                 .map(|_| Message::IncNewsIndex),
+            iced::time::every(Duration::from_millis(10))
+                .map(|_| Action::Update)
+                .map(Message::WebView),
         ])
     }
 
@@ -154,9 +185,12 @@ impl RustClock {
                 PaneType::News => panes::render_news_pane(&state.news, state.news_index),
                 PaneType::MlbPane => panes::render_mlb_pane(&state.mlb_scores, &state.mlb_logos),
                 PaneType::Clock => panes::render_clock_pane(),
-                PaneType::Weather => {
-                    panes::render_weather_pane(&state.weather_handle, &state.location)
-                }
+                PaneType::Weather => match state.weather_type {
+                    WeatherType::WeatherStar => panes::render_weather_star_pane(&state),
+                    WeatherType::Wttr => {
+                        panes::render_wttr_pane(&state.weather_handle, &state.location)
+                    }
+                },
             };
             pane_grid::Content::new(content)
         })
@@ -164,8 +198,6 @@ impl RustClock {
         .on_resize(10, Message::PaneResized)
         .into()
     }
-
-   
 }
 
 impl Default for RustClock {
@@ -182,13 +214,14 @@ impl Default for RustClock {
             .map(|(k, v)| (k, Handle::from_bytes(v)))
             .collect();
 
-        let weather_type = WeatherType::Wttr;
-
+        let weather_type = WEATHER_TYPE;
         let webview = match weather_type {
-            WeatherType::Wttr => Some(WebView::new()
-                .on_create_view(Message::ViewCreated)
-                .on_action(Message::WebView)),
-            WeatherType::None => None,
+            WeatherType::WeatherStar => Some(
+                WebView::new()
+                    .on_create_view(Message::ViewCreated)
+                    .on_action(Message::WebView),
+            ),
+            WeatherType::Wttr => None,
         };
 
         RustClock {

@@ -3,6 +3,7 @@ use iced::Border;
 use iced::Element;
 use iced::Fill;
 use iced::widget::scrollable::{Direction, Scrollbar};
+use iced::widget::text_editor::State;
 use iced::widget::{column, container, image, pick_list, row, scrollable, text};
 use std::collections::HashMap;
 use iced_webview::{Action, PageType, WebView};
@@ -10,7 +11,7 @@ use iced_webview::{Action, PageType, WebView};
 use crate::Message;
 use crate::news::get_news_item;
 use crate::sports::Game;
-
+use crate::RustClock;
 use iced::widget::image::{Handle, Viewer};
 
 pub fn render_nba_pane<'a>(
@@ -142,7 +143,7 @@ pub fn render_clock_pane<'a>() -> Element<'a, Message> {
     .into()
 }
 
-pub fn render_weather_pane<'a>(
+pub fn render_wttr_pane<'a>(
     weather_handle: &'a Option<Handle>,
     location: &'a str,
 ) -> Element<'a, Message> {
@@ -163,4 +164,15 @@ pub fn render_weather_pane<'a>(
     .center_x(Fill)
     .center_y(Fill)
     .into()
+}
+
+pub fn render_weather_star_pane<'a>(state: &'a RustClock) -> Element<'a, Message> {
+    if state.ready {
+        state.webview.as_ref()
+            .expect("WeatherStar Not loading")
+            .view()
+            .map(Message::WebView)
+    } else {
+        text("Loading...").into()
+    }
 }
