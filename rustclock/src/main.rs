@@ -27,7 +27,6 @@ const NEWS_UPDATE_TIME_MINS: u64 = 15;
 const NEWS_ROTATE_TIME_SECS: u64 = 15;
 const WEATHER_TYPE: WeatherType = WeatherType::WeatherStar;
 
-
 pub fn main() -> iced::Result {
     if iced_webview::cef_subprocess_check() {
         return Ok(());
@@ -144,17 +143,23 @@ impl RustClock {
                 self.news_index = (self.news_index + 1) % self.news.len();
                 Task::none()
             }
-            Message::WebView(action) => self
-                .webview
-                .as_mut()
-                .expect("WebView not initialized")
-                .update(action),
+            Message::WebView(action) => {
+                if let Some(webview) = &mut self.webview {
+                    webview.update(action)
+                } else {
+                    println!("WebView Warning: Received action but webview is None");
+                    Task::none()
+                }
+            }
             Message::ViewCreated => {
+                println!("WebView: ViewCreated message received");
                 self.ready = true;
-                self.webview
-                    .as_mut()
-                    .expect("WebView not initialized")
-                    .update(Action::ChangeView(0))
+                if let Some(webview) = &mut self.webview {
+                    webview.update(Action::ChangeView(0))
+                } else {
+                    println!("WebView Error: ViewCreated received but webview is None");
+                    Task::none()
+                }
             }
         }
     }

@@ -5,13 +5,13 @@ use iced::Fill;
 use iced::widget::scrollable::{Direction, Scrollbar};
 use iced::widget::text_editor::State;
 use iced::widget::{column, container, image, pick_list, row, scrollable, text};
-use std::collections::HashMap;
 use iced_webview::{Action, PageType, WebView};
+use std::collections::HashMap;
 
 use crate::Message;
+use crate::RustClock;
 use crate::news::get_news_item;
 use crate::sports::Game;
-use crate::RustClock;
 use iced::widget::image::{Handle, Viewer};
 
 pub fn render_nba_pane<'a>(
@@ -135,7 +135,7 @@ pub fn render_mlb_pane<'a>(
 ///
 pub fn render_clock_pane<'a>() -> Element<'a, Message> {
     let alarm_hour = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
- //   let alarm = pick_list().placeholder("Set Alarm");
+    //   let alarm = pick_list().placeholder("Set Alarm");
     container(row![
         text(Local::now().format("%m/%d %H:%M:%S").to_string()).size(30)
     ])
@@ -153,7 +153,12 @@ pub fn render_wttr_pane<'a>(
     container(
         column![
             text("Weather").size(50),
-            iced::widget::image::viewer(weather_img.clone()).width(Fill).height(Fill).max_scale(20.0).min_scale(2.0).content_fit(iced::ContentFit::Contain),
+            iced::widget::image::viewer(weather_img.clone())
+                .width(Fill)
+                .height(Fill)
+                .max_scale(20.0)
+                .min_scale(2.0)
+                .content_fit(iced::ContentFit::Contain),
             text(location).size(30),
         ]
         .padding(0)
@@ -168,10 +173,11 @@ pub fn render_wttr_pane<'a>(
 
 pub fn render_weather_star_pane<'a>(state: &'a RustClock) -> Element<'a, Message> {
     if state.ready {
-        state.webview.as_ref()
-            .expect("WeatherStar Not loading")
-            .view()
-            .map(Message::WebView)
+        if let Some(webview) = &state.webview {
+            webview.view().map(Message::WebView)
+        } else {
+            text("WebView data missing").into()
+        }
     } else {
         text("Loading...").into()
     }

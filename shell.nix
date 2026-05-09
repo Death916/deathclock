@@ -26,18 +26,68 @@ pkgs.mkShell {
     pkgs.freetype
     pkgs.mesa
     pkgs.libGL
+    pkgs.libglvnd
     pkgs.glib
     pkgs.vulkan-loader
     pkgs.vulkan-headers
     pkgs.clippy
+    # CEF Dependencies
+    pkgs.nss
+    pkgs.nspr
+    pkgs.atk
+    pkgs.at-spi2-atk
+    pkgs.at-spi2-core
+    pkgs.dbus
+    pkgs.cups
+    pkgs.libdrm
+    pkgs.libgbm
+    pkgs.expat
+    pkgs.cairo
+    pkgs.pango
+    pkgs.systemd
+    pkgs.alsa-lib
+    pkgs.xorg.libX11
+    pkgs.xorg.libXcomposite
+    pkgs.xorg.libXdamage
+    pkgs.xorg.libXext
+    pkgs.xorg.libXfixes
+    pkgs.xorg.libXrandr
+    pkgs.xorg.libXtst
+    pkgs.xorg.libxcb
+    pkgs.pciutils
   ];
 
   LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
     pkgs.wayland
     pkgs.libxkbcommon
     pkgs.mesa
+    pkgs.libGL
+    pkgs.libglvnd
     pkgs.glib
     pkgs.vulkan-loader
+    # CEF Runtime Libraries
+    pkgs.nss
+    pkgs.nspr
+    pkgs.atk
+    pkgs.at-spi2-atk
+    pkgs.at-spi2-core
+    pkgs.dbus
+    pkgs.cups
+    pkgs.libdrm
+    pkgs.libgbm
+    pkgs.expat
+    pkgs.cairo
+    pkgs.pango
+    pkgs.systemd
+    pkgs.alsa-lib
+    pkgs.xorg.libX11
+    pkgs.xorg.libXcomposite
+    pkgs.xorg.libXdamage
+    pkgs.xorg.libXext
+    pkgs.xorg.libXfixes
+    pkgs.xorg.libXrandr
+    pkgs.xorg.libXtst
+    pkgs.xorg.libxcb
   ];
 
   shellHook = ''
