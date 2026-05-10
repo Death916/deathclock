@@ -16,6 +16,31 @@ chromedriver
 
 
 # Added by cargo
+**/target/
 
-*/target
-
+# CEF / Chromium Artifacts
+*.pak
+*.dat
+*.bin
+locales/
+archive.json
+vk_swiftshader_icd.json
+chrome-sandbox
+*.so
+*.so.*
+cef_paths.gypi
+cef_paths2.gypi
+BUILD.bazel
+MODULE.bazel
+WORKSPACE
+Doxyfile
+CREDITS.html
+Release/
+Resources/
+Debug/
+bazel/
+cmake/
+include/
+lib/
+libcef_dll/
+tests/

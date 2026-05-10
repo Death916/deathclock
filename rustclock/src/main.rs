@@ -19,6 +19,7 @@ use std::collections::HashMap;
 
 type Engine = iced_webview::Cef;
 
+const WEATHER_STAR_URL: &str = "https://weatherstar.netbymatt.com/?hazards-checkbox=true&current-weather-checkbox=true&latest-observations-checkbox=true&hourly-checkbox=true&hourly-graph-checkbox=true&travel-checkbox=false&regional-forecast-checkbox=true&local-forecast-checkbox=true&extended-forecast-checkbox=true&almanac-checkbox=true&spc-outlook-checkbox=true&radar-checkbox=true&settings-wide-checkbox=false&settings-kiosk-checkbox=true&settings-stickyKiosk-checkbox=false&settings-customTextEnable-checkbox=false&settings-speed-select=1.00&settings-scanLineMode-select=&settings-units-select=us&txtLocation=Sacramento%2C+CA%2C+USA&settings-customText-string=&share-link-url=&settings-scanLines-checkbox=true&settings-mediaVolume-select=0.75&latLonQuery=Citrus+Heights%2C+CA%2C+USA&latLon=%7B%22lat%22%3A38.6773%2C%22lon%22%3A-121.3006%7D";
 const CLOCK_UPDATE_TIME_MS: u64 = 1500;
 const UPDATE_SPORTS_TIME_MINS: u64 = 5;
 const UPDATE_SPORTS_TIME_OFF_PEAK_MINS: u64 = 30; // TODO!   add this
@@ -40,7 +41,7 @@ pub fn main() -> iced::Result {
 
             if WEATHER_TYPE == WeatherType::WeatherStar {
                 tasks.push(Task::done(Message::WebView(Action::CreateView(
-                    PageType::Url("https://weatherstar.netbymatt.com/".to_string()),
+                    PageType::Url(WEATHER_STAR_URL.to_string()),
                 ))));
             }
 

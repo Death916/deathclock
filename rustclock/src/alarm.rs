@@ -8,7 +8,12 @@ struct Alarm {
 }
 
 impl Alarm {
-    fn new(time: chrono::DateTime<chrono::Local>, alarm_time_hour: u32, alarm_time_minute: u32, am_pm: String) -> Self {
+    fn new(
+        time: chrono::DateTime<chrono::Local>,
+        alarm_time_hour: u32,
+        alarm_time_minute: u32,
+        am_pm: String,
+    ) -> Self {
         Self {
             time,
             alarm_time_hour,
@@ -19,4 +24,3 @@ impl Alarm {
         }
     }
 }
-

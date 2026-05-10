@@ -16,10 +16,7 @@ pkgs.mkShell {
     pkgs.pkg-config
     pkgs.openssl
     pkgs.libxcb
-    pkgs.pkg-config
-    pkgs.openssl
     pkgs.alsa-lib
-    pkgs.libxcb
     pkgs.wayland
     pkgs.libxkbcommon
     pkgs.fontconfig
@@ -31,7 +28,7 @@ pkgs.mkShell {
     pkgs.vulkan-loader
     pkgs.vulkan-headers
     pkgs.clippy
-    # CEF Dependencies
+    # CEF Dependencies (System level)
     pkgs.nss
     pkgs.nspr
     pkgs.atk
@@ -41,17 +38,19 @@ pkgs.mkShell {
     pkgs.cups
     pkgs.libdrm
     pkgs.libgbm
+    pkgs.libxshmfence
+    pkgs.udev
     pkgs.expat
     pkgs.cairo
     pkgs.pango
     pkgs.systemd
-    pkgs.alsa-lib
     pkgs.xorg.libX11
     pkgs.xorg.libXcomposite
     pkgs.xorg.libXdamage
     pkgs.xorg.libXext
     pkgs.xorg.libXfixes
     pkgs.xorg.libXrandr
+    pkgs.xorg.libXrender
     pkgs.xorg.libXtst
     pkgs.xorg.libxcb
     pkgs.pciutils
@@ -65,16 +64,15 @@ pkgs.mkShell {
     pkgs.libglvnd
     pkgs.glib
     pkgs.vulkan-loader
-    # CEF Runtime Libraries
     pkgs.nss
     pkgs.nspr
     pkgs.atk
-    pkgs.at-spi2-atk
-    pkgs.at-spi2-core
     pkgs.dbus
     pkgs.cups
     pkgs.libdrm
     pkgs.libgbm
+    pkgs.libxshmfence
+    pkgs.udev
     pkgs.expat
     pkgs.cairo
     pkgs.pango
@@ -86,15 +84,24 @@ pkgs.mkShell {
     pkgs.xorg.libXext
     pkgs.xorg.libXfixes
     pkgs.xorg.libXrandr
+    pkgs.xorg.libXrender
     pkgs.xorg.libXtst
     pkgs.xorg.libxcb
   ];
 
   shellHook = ''
     source .venv/bin/activate
-    # export PATH="${pkgs.bun}/bin:$PATH"
-    # export BUN_INSTALL="${pkgs.bun}/bin/bun"
     export REFLEX_USE_SYSTEM_BUN=True
-    echo venv activated and bun versions set
+
+    echo "Linking CEF resources to target folders..."
+    for profile in debug release; do
+      target_dir="rustclock/target/$profile"
+      if [ -d "$target_dir" ]; then
+        cef_dir=$(find rustclock/target/$profile/build -type d -name "cef_linux_x86_64" | head -n 1)
+        if [ -n "$cef_dir" ]; then
+          ln -sf "$PWD/$cef_dir"/* "$target_dir/" 2>/dev/null || true
+        fi
+      fi
+    done
   '';
 }

@@ -1,15 +1,12 @@
 use iced::widget::image::Handle;
 use reqwest::Client;
 
-
-
 pub async fn get_weather_image() -> Handle {
     let client = Client::builder()
         .user_agent("deathclock-app/1.0")
         .build()
         .unwrap();
 
-    
     let image = client
         .get("https://wttr.in/Sacramento.png?")
         .send()
@@ -25,7 +22,6 @@ pub async fn get_weather_image() -> Handle {
     dbg!(format!("{}: updating weather", chrono::Local::now()));
     handle
 }
-
 
 mod tests {
     use super::*;
