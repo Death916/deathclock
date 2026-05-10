@@ -103,5 +103,7 @@ pkgs.mkShell {
         fi
       fi
     done
+
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD/rustclock/target/debug:$PWD/rustclock/target/release"
   '';
 }
