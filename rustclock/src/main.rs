@@ -141,7 +141,9 @@ impl RustClock {
                 Task::none()
             }
             Message::IncNewsIndex => {
-                self.news_index = (self.news_index + 1) % self.news.len();
+                if !self.news.is_empty() {
+                    self.news_index = (self.news_index + 1) % self.news.len();
+                }
                 Task::none()
             }
             Message::WebView(action) => {

@@ -99,7 +99,8 @@ pub fn update_mlb() -> Vec<Game> {
 pub fn update_nba() -> Vec<Game> {
     let nba_games =
         ureq::get("https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json")
-            .header("User-Agent", "deathclock-app/1.0")
+            .header("Referer", "https://www.nba.com/")
+            .header("User-Agent", "Chrome/123.0.0.0")
             .call()
             .unwrap()
             .into_body()
@@ -153,6 +154,7 @@ pub fn get_mlb_logos() -> HashMap<String, Vec<u8>> {
     for (team_name, logo_url) in logos_map.iter() {
         let response = ureq::get(logo_url)
             .header("User-Agent", "deathclock-app/0.1")
+            
             .call()
             .unwrap();
 

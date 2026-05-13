@@ -1,4 +1,6 @@
-use rss::Channel;
+use rand::prelude::*;
+use rand::seq::IndexedRandom;
+use rss::{Channel, Source};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -6,6 +8,7 @@ pub async fn get_news() -> Vec<String> {
     let feeds = File::open("../feeds.txt");
     let mut source_feed_vec = Vec::new();
     let mut news = Vec::new();
+
     match feeds {
         Ok(file) => {
             let reader = BufReader::new(file);
@@ -20,7 +23,16 @@ pub async fn get_news() -> Vec<String> {
         }
     }
 
-    for feed in source_feed_vec.iter() {
+    let feed_sample: Vec<String> = {
+        let mut rng = rand::rng();
+        source_feed_vec
+            .sample(&mut rng, 10)
+            .into_iter()
+            .map(|feed| feed.to_string())
+            .collect()
+    };
+
+    for feed in feed_sample.iter() {
         let feed_url = feed.as_str();
         dbg!(feed_url);
         let content = reqwest::get(feed_url).await;
@@ -70,7 +82,7 @@ pub fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
 }
 
 mod tests {
-    
+    use super::*;
 
     #[tokio::test]
     async fn test_get_feeds() {
