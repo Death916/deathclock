@@ -35,14 +35,21 @@ pub fn main() -> iced::Result {
     iced::application(
         || {
             let mut tasks = vec![
-                Task::perform(weather::get_weather_image(), Message::UpdateWeatherImg),
                 Task::perform(news::get_news(), Message::UpdateNews),
             ];
 
-            if WEATHER_TYPE == WeatherType::WeatherStar {
-                tasks.push(Task::done(Message::WebView(Action::CreateView(
-                    PageType::Url(WEATHER_STAR_URL.to_string()),
-                ))));
+            match WEATHER_TYPE {
+                WeatherType::WeatherStar => {
+                    tasks.push(Task::done(Message::WebView(Action::CreateView(
+                        PageType::Url(WEATHER_STAR_URL.to_string()),
+                    ))));
+                }
+                WeatherType::Wttr => {
+                    tasks.push(Task::perform(
+                        weather::get_weather_image(),
+                        Message::UpdateWeatherImg,
+                    ));
+                }
             }
 
             (RustClock::default(), Task::batch(tasks))
@@ -127,7 +134,11 @@ impl RustClock {
                 Task::none()
             }
             Message::RunWeatherUpdate => {
-                Task::perform(weather::get_weather_image(), Message::UpdateWeatherImg)
+                if self.weather_type == WeatherType::Wttr {
+                    Task::perform(weather::get_weather_image(), Message::UpdateWeatherImg)
+                } else {
+                    Task::none()
+                }
             }
             Message::UpdateWeatherImg(handle) => {
                 self.weather_handle = Some(handle);
@@ -179,7 +190,7 @@ impl RustClock {
                 .map(|_| Message::RunNewsUpdate),
             iced::time::every(Duration::from_secs(NEWS_ROTATE_TIME_SECS))
                 .map(|_| Message::IncNewsIndex),
-            iced::time::every(Duration::from_millis(10))
+            iced::time::every(Duration::from_millis(30))
                 .map(|_| Action::Update)
                 .map(Message::WebView),
         ])
