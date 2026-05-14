@@ -4111,6 +4111,7 @@ dependencies = [
 name = "rustclock"
 version = "0.2.0"
 dependencies = [
+ "base64",
  "chrono",
  "iced",
  "iced_webview_v2",

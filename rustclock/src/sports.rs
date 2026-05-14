@@ -1,4 +1,12 @@
+use base64::{Engine as _, engine::general_purpose};
+use iced::wgpu::hal::auxil::db;
 use std::collections::HashMap;
+use std::env;
+use std::fs::{self, File};
+use std::hash::Hash;
+use std::io::{Read, Write};
+use std::path::PathBuf;
+
 #[derive(Debug, Clone)]
 pub enum Sport {
     NBA,
@@ -139,6 +147,41 @@ pub fn update_nba() -> Vec<Game> {
     updated_games
 }
 
+fn get_cache_path(sport: &str) -> PathBuf {
+    let mut cache_path = env::temp_dir();
+    cache_path.push("rustclock");
+    let _ = fs::create_dir_all(&cache_path);
+    cache_path.push(format!("{}_logos.json", sport));
+    cache_path
+}
+
+fn save_logos_to_cache(cache_path: &PathBuf, logos: &HashMap<String, Vec<u8>>) {
+    let mut cache_map: HashMap<String, String> = HashMap::new();
+    dbg!("saving logos to cache");
+    for (team, logo) in logos.iter() {
+        let logo_base64 = base64::engine::general_purpose::STANDARD.encode(logo);
+        cache_map.insert(team.clone(), logo_base64);
+    }
+    let mut cache_file = std::fs::File::create(cache_path).unwrap();
+    serde_json::to_writer(&mut cache_file, &cache_map).unwrap();
+}
+
+fn load_logos_from_cache(cache_path: PathBuf) -> HashMap<String, Vec<u8>> {
+    let mut cache_map = HashMap::new();
+    if cache_path.exists() {
+        let file = File::open(cache_path);
+        if let Ok(file) = file {
+            dbg!("loading from cache");
+            let cached_data: HashMap<String, String> = serde_json::from_reader(file).unwrap();
+            for (team, b64) in cached_data {
+                let bytes = general_purpose::STANDARD.decode(b64).unwrap();
+                cache_map.insert(team, bytes);
+            }
+        }
+    }
+    cache_map
+}
+
 pub fn get_mlb_logos() -> HashMap<String, Vec<u8>> {
     let json = std::fs::read_to_string("src/files/mlb_logos.json").unwrap();
     let parsed_json: serde_json::Value = serde_json::from_str(&json).unwrap();
@@ -151,16 +194,23 @@ pub fn get_mlb_logos() -> HashMap<String, Vec<u8>> {
         logos_map.insert(team_name.to_string(), logo_url.to_string());
     }
     let mut logos_svg_map = std::collections::HashMap::new();
+
+    let mlb_cache = get_cache_path("mlb");
+    if mlb_cache.exists() {
+        let logos = load_logos_from_cache(mlb_cache);
+        return logos;
+    }
+
     for (team_name, logo_url) in logos_map.iter() {
         let response = ureq::get(logo_url)
             .header("User-Agent", "deathclock-app/0.1")
-            
             .call()
             .unwrap();
 
         let image_data = response.into_body().read_to_vec().unwrap();
         logos_svg_map.insert(team_name.to_string(), image_data);
     }
+    save_logos_to_cache(&mlb_cache, &logos_svg_map);
     logos_svg_map
 }
 
@@ -176,17 +226,22 @@ pub fn get_nba_logos() -> HashMap<String, Vec<u8>> {
         logos_map.insert(team_name.to_string(), logo_url.to_string());
     }
     let mut nba_svg_map = std::collections::HashMap::new();
+    let nba_cache = get_cache_path("nba");
+    if nba_cache.exists() {
+        let logos = load_logos_from_cache(nba_cache);
+        return logos;
+    }
+    dbg!("downloading nba logos");
     for (team_name, logo_url) in logos_map.iter() {
         let response = ureq::get(logo_url)
             .header("User-Agent", "deathclock-app/0.1")
             .call()
             .unwrap();
-        dbg!(chrono::Local::now(), response.status());
 
         let image_data = response.into_body().read_to_vec().unwrap();
         nba_svg_map.insert(team_name.to_string(), image_data);
-        dbg!("Downloaded logo for ", team_name);
     }
+    save_logos_to_cache(&nba_cache, &nba_svg_map);
     nba_svg_map
 }
 
