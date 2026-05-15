@@ -14,7 +14,46 @@ pub enum Sport {
     MLB,
 }
 
-#[derive(Debug)]
+pub struct Games {
+    nba: Vec<Game>,
+    nfl: Vec<Game>,
+    mlb: Vec<Game>,
+}
+
+impl Games {
+    pub fn new() -> Self {
+        Games {
+            nba: update_nba(),
+            nfl: Vec::new(),
+            mlb: update_mlb(),
+        }
+    }
+
+    // split vec of games in half and return two games vectors
+    pub fn split(self, sport: Sport) -> (Vec<Game>, Vec<Game>) {
+        let games = match sport {
+            Sport::NBA => self.nba,
+            Sport::NFL => self.nfl,
+            Sport::MLB => self.mlb,
+        };
+        
+        let mid = games.len() / 2;
+        let (left, right) = games.split_at(mid);
+        (left.to_vec(), right.to_vec())
+    }
+    
+
+    pub fn update_games(self) -> Games {
+        Games {
+            nba: update_nba(),
+            nfl: Vec::new(),
+            mlb: update_mlb(),
+        }
+    }
+
+}
+
+#[derive(Debug, Clone)]
 pub struct Game {
     pub sport: Sport,
     pub team1: String,

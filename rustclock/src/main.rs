@@ -14,7 +14,7 @@ use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 
 use iced_webview::{Action, PageType, WebView};
-use sports::Game;
+use sports::{Game, Games};
 use std::collections::HashMap;
 
 type Engine = iced_webview::Cef;
@@ -100,8 +100,8 @@ struct RustClock {
     news: Vec<String>,
     news_index: usize,
     location: String,
-    nba_scores: Vec<Game>,
-    mlb_scores: Vec<Game>,
+    nba_scores: Games,
+    mlb_scores: Games,
     panes: pane_grid::State<PaneType>,
     nba_logos: HashMap<String, Handle>,
     mlb_logos: HashMap<String, Handle>,
@@ -243,6 +243,8 @@ impl Default for RustClock {
             WeatherType::Wttr => None,
         };
 
+        
+        
         RustClock {
             current_time: Local::now(),
             next_alarm: None,
