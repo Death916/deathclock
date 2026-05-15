@@ -24,7 +24,7 @@ pub async fn get_weather_image() -> Handle {
 }
 
 mod tests {
-    
+    use super::*;
 
     #[tokio::test]
     async fn test_get_weather() {

@@ -262,6 +262,7 @@ mod tests {
     #[test]
     fn test_get_nba_scores() {
         let nba_scores = update_nba();
+        dbg!(&nba_scores);
         assert!(!nba_scores.is_empty());
     }
     #[test]
