@@ -76,7 +76,7 @@ pub fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
         let headline = headline.to_string();
         headline
     } else {
-        let error_message = format!("could not find news item at index {}", index);
+        let error_message = format!("Loading News or cant fetch");
         error_message
     }
 }
