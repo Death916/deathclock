@@ -27,7 +27,7 @@ pkgs.mkShell {
     pkgs.glib
     pkgs.vulkan-loader
     pkgs.vulkan-headers
-    pkgs.clippy
+    unstable.clippy
     # CEF Dependencies (System level)
     pkgs.nss
     pkgs.nspr
