@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use crate::Message;
 use crate::RustClock;
 use crate::news::get_news_item;
-use crate::sports::Game;
+use crate::sports::{Game,Games};
 use iced::widget::image::Handle;
 
 pub fn render_nba_pane<'a>(

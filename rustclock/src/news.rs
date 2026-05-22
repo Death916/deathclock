@@ -78,7 +78,8 @@ pub fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
 }
 
 mod tests {
-
+    use super::*;
+    
     #[tokio::test]
     async fn test_get_feeds() {
         let news = get_news().await;
