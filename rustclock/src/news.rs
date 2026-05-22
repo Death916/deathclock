@@ -1,6 +1,6 @@
 use rand::prelude::*;
 use rand::seq::IndexedRandom;
-use rss::{Channel, Source};
+use rss::Channel;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -12,10 +12,8 @@ pub async fn get_news() -> Vec<String> {
     match feeds {
         Ok(file) => {
             let reader = BufReader::new(file);
-            for line in reader.lines() {
-                if let Ok(feed) = line {
-                    source_feed_vec.push(feed);
-                }
+            for feed in reader.lines().flatten() {
+                source_feed_vec.push(feed);
             }
         }
         Err(e) => {
@@ -27,7 +25,6 @@ pub async fn get_news() -> Vec<String> {
         let mut rng = rand::rng();
         source_feed_vec
             .sample(&mut rng, 10)
-            .into_iter()
             .map(|feed| feed.to_string())
             .collect()
     };
@@ -73,8 +70,7 @@ pub async fn get_news() -> Vec<String> {
 
 pub fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
     if let Some(headline) = news_feeds.get(index) {
-        let headline = headline.to_string();
-        headline
+        headline.to_string()
     } else {
         let error_message = format!("could not find news item at index {}", index);
         error_message
@@ -82,7 +78,6 @@ pub fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
 }
 
 mod tests {
-    use super::*;
 
     #[tokio::test]
     async fn test_get_feeds() {

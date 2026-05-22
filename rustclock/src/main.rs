@@ -14,7 +14,7 @@ use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 
 use iced_webview::{Action, PageType, WebView};
-use sports::{Game, Games};
+use sports::Game;
 use std::collections::HashMap;
 
 type Engine = iced_webview::Cef;
@@ -34,9 +34,7 @@ pub fn main() -> iced::Result {
     }
     iced::application(
         || {
-            let mut tasks = vec![
-                Task::perform(news::get_news(), Message::UpdateNews),
-            ];
+            let mut tasks = vec![Task::perform(news::get_news(), Message::UpdateNews)];
 
             match WEATHER_TYPE {
                 WeatherType::WeatherStar => {
@@ -205,7 +203,7 @@ impl RustClock {
                 PaneType::MlbPane => panes::render_mlb_pane(&state.mlb_scores, &state.mlb_logos),
                 PaneType::Clock => panes::render_clock_pane(),
                 PaneType::Weather => match state.weather_type {
-                    WeatherType::WeatherStar => panes::render_weather_star_pane(&state),
+                    WeatherType::WeatherStar => panes::render_weather_star_pane(state),
                     WeatherType::Wttr => {
                         panes::render_wttr_pane(&state.weather_handle, &state.location)
                     }
@@ -243,8 +241,6 @@ impl Default for RustClock {
             WeatherType::Wttr => None,
         };
 
-        
-        
         RustClock {
             current_time: Local::now(),
             next_alarm: None,

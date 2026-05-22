@@ -2,8 +2,6 @@ use base64::{Engine as _, engine::general_purpose};
 use std::collections::HashMap;
 use std::env;
 use std::fs::{self, File};
-use std::hash::Hash;
-use std::io::{Read, Write};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -35,12 +33,11 @@ impl Games {
             Sport::NFL => self.nfl,
             Sport::MLB => self.mlb,
         };
-        
+
         let mid = games.len() / 2;
         let (left, right) = games.split_at(mid);
         (left.to_vec(), right.to_vec())
     }
-    
 
     pub fn update_games(self) -> Games {
         Games {
@@ -49,7 +46,6 @@ impl Games {
             mlb: update_mlb(),
         }
     }
-
 }
 
 #[derive(Debug, Clone)]
@@ -110,12 +106,8 @@ pub fn update_mlb() -> Vec<Game> {
     for game in games {
         let home_team = game["teams"]["away"]["team"]["name"].as_str().unwrap();
         let away_team = game["teams"]["home"]["team"]["name"].as_str().unwrap();
-        let home_score = game["teams"]["away"]["score"]
-            .as_str()
-            .unwrap_or_else(|| "0");
-        let away_score = game["teams"]["home"]["score"]
-            .as_str()
-            .unwrap_or_else(|| "0");
+        let home_score = game["teams"]["away"]["score"].as_str().unwrap_or("0");
+        let away_score = game["teams"]["home"]["score"].as_str().unwrap_or("0");
         let period = game["status"]["period"]
             .as_str()
             .unwrap_or_default()
@@ -130,7 +122,7 @@ pub fn update_mlb() -> Vec<Game> {
             away_score,
             period,
         );
-        mlb_game_struct.update(&home_score, &away_score, period);
+        mlb_game_struct.update(home_score, away_score, period);
         mlb_games_vec.push(mlb_game_struct);
         dbg!(home_team);
         dbg!(away_team);
