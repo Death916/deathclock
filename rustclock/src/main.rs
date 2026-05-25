@@ -34,9 +34,7 @@ pub fn main() -> iced::Result {
     }
     iced::application(
         || {
-            let mut tasks = vec![
-                Task::perform(news::get_news(), Message::UpdateNews),
-            ];
+            let mut tasks = vec![Task::perform(news::get_news(), Message::UpdateNews)];
 
             match WEATHER_TYPE {
                 WeatherType::WeatherStar => {
@@ -100,8 +98,9 @@ struct RustClock {
     news: Vec<String>,
     news_index: usize,
     location: String,
-    nba_scores: Games,
-    mlb_scores: Games,
+    all_games: Games,
+    nba_scores: Vec<Game>,
+    mlb_scores: Vec<Game>,
     panes: pane_grid::State<PaneType>,
     nba_logos: HashMap<String, Handle>,
     mlb_logos: HashMap<String, Handle>,
@@ -125,8 +124,9 @@ impl RustClock {
                 Task::none()
             }
             Message::RunSportsUpdate => {
-                self.nba_scores = sports::update_nba();
-                self.mlb_scores = sports::update_mlb();
+                self.all_games = Games::update_games(self.all_games.clone());
+                self.nba_scores = self.all_games.nba.clone();
+                self.mlb_scores = self.all_games.mlb.clone();
                 Task::none()
             }
             Message::UpdateTime => {
@@ -243,16 +243,17 @@ impl Default for RustClock {
             WeatherType::Wttr => None,
         };
 
-        
-        
+        let  games_list = sports::Games::new();
+
         RustClock {
             current_time: Local::now(),
             next_alarm: None,
             news: Vec::new(),
             news_index: 0,
             location: "Sacramento".to_string(),
-            nba_scores: { sports::update_nba() },
-            mlb_scores: { sports::update_mlb() },
+            all_games: sports::Games::new(),
+            nba_scores: games_list.nba,
+            mlb_scores: games_list.mlb,
             mlb_logos,
             nba_logos,
             weather_handle: None,

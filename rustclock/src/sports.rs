@@ -1,10 +1,7 @@
 use base64::{Engine as _, engine::general_purpose};
-use iced::wgpu::hal::auxil::db;
 use std::collections::HashMap;
 use std::env;
 use std::fs::{self, File};
-use std::hash::Hash;
-use std::io::{Read, Write};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
@@ -14,10 +11,11 @@ pub enum Sport {
     MLB,
 }
 
+#[derive(Debug, Clone)]
 pub struct Games {
-    nba: Vec<Game>,
-    nfl: Vec<Game>,
-    mlb: Vec<Game>,
+    pub nba: Vec<Game>,
+    pub nfl: Vec<Game>,
+    pub mlb: Vec<Game>,
 }
 
 impl Games {
@@ -308,5 +306,13 @@ mod tests {
     fn test_get_mlb_scores() {
         let mlb_scores = update_mlb();
         assert!(!mlb_scores.is_empty());
+    }
+
+    #[test]
+    fn test_no_scores() {
+        let nba_scores = update_nba();
+        let mlb_scores = update_mlb();
+        assert!(nba_scores.is_empty());
+        assert!(mlb_scores.is_empty());
     }
 }
