@@ -12,7 +12,7 @@ pub async fn get_news() -> Vec<String> {
     match feeds {
         Ok(file) => {
             let reader = BufReader::new(file);
-            for feed in reader.lines().flatten() {
+            for feed in reader.lines().map_while(Result::ok) {
                 source_feed_vec.push(feed);
             }
         }
@@ -79,7 +79,7 @@ pub fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
 
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     async fn test_get_feeds() {
         let news = get_news().await;
