@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use crate::Message;
 use crate::RustClock;
 use crate::news::get_news_item;
-use crate::sports::{Game,Games};
+use crate::sports::{Game, Games};
 use iced::widget::image::Handle;
 
 pub fn render_nba_pane<'a>(
@@ -130,7 +130,7 @@ pub fn render_mlb_pane<'a>(
     .direction(Direction::Vertical(Scrollbar::hidden()))
     .into()
 }
-///
+
 pub fn render_clock_pane<'a>() -> Element<'a, Message> {
     let _alarm_hour = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     //   let alarm = pick_list().placeholder("Set Alarm");
@@ -140,6 +140,7 @@ pub fn render_clock_pane<'a>() -> Element<'a, Message> {
     .align_x(iced::Alignment::Center)
     .into()
 }
+
 
 pub fn render_wttr_pane<'a>(
     weather_handle: &'a Option<Handle>,

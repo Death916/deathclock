@@ -11,10 +11,11 @@ pub enum Sport {
     MLB,
 }
 
+#[derive(Debug, Clone)]
 pub struct Games {
-    nba: Vec<Game>,
-    nfl: Vec<Game>,
-    mlb: Vec<Game>,
+    pub nba: Vec<Game>,
+    pub nfl: Vec<Game>,
+    pub mlb: Vec<Game>,
 }
 
 impl Games {
@@ -277,8 +278,9 @@ pub fn get_nba_logos() -> HashMap<String, Vec<u8>> {
 
 #[cfg(test)]
 mod tests {
+    
     use super::*;
-
+    
     #[test]
     fn test_get_nba_logos() {
         let nba_logos = get_nba_logos();
@@ -300,4 +302,12 @@ mod tests {
         let mlb_scores = update_mlb();
         assert!(!mlb_scores.is_empty());
     }
+
+    
+  //  fn test_no_scores_for split() {
+   //     let nba_scores = update_nba();
+    //     let mlb_scores = update_mlb();
+    //     let mlb_check = mlb_scores.is_empty();
+    //     
+    // }
 }

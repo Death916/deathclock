@@ -14,7 +14,7 @@ use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 
 use iced_webview::{Action, PageType, WebView};
-use sports::Game;
+use sports::{Game, Games};
 use std::collections::HashMap;
 
 type Engine = iced_webview::Cef;
@@ -98,6 +98,7 @@ struct RustClock {
     news: Vec<String>,
     news_index: usize,
     location: String,
+    all_games: Games,
     nba_scores: Vec<Game>,
     mlb_scores: Vec<Game>,
     panes: pane_grid::State<PaneType>,
@@ -123,8 +124,9 @@ impl RustClock {
                 Task::none()
             }
             Message::RunSportsUpdate => {
-                self.nba_scores = sports::update_nba();
-                self.mlb_scores = sports::update_mlb();
+                self.all_games = Games::update_games(self.all_games.clone());
+                self.nba_scores = self.all_games.nba.clone();
+                self.mlb_scores = self.all_games.mlb.clone();
                 Task::none()
             }
             Message::UpdateTime => {
@@ -241,14 +243,17 @@ impl Default for RustClock {
             WeatherType::Wttr => None,
         };
 
+        let games_list = Games::new();
+
         RustClock {
             current_time: Local::now(),
             next_alarm: None,
             news: Vec::new(),
             news_index: 0,
             location: "Sacramento".to_string(),
-            nba_scores: { sports::update_nba() },
-            mlb_scores: { sports::update_mlb() },
+            all_games: games_list.clone(),
+            nba_scores: games_list.nba,
+            mlb_scores: games_list.mlb,
             mlb_logos,
             nba_logos,
             weather_handle: None,
