@@ -72,7 +72,7 @@ pub fn get_news_item(index: usize, news_feeds: &Vec<String>) -> String {
     if let Some(headline) = news_feeds.get(index) {
         headline.to_string()
     } else {
-        let error_message = format!("Loading News or cant fetch");
+        let error_message = "Loading News or cant fetch".to_string();
         error_message
     }
 }
