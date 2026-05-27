@@ -6,6 +6,7 @@ mod sports;
 mod weather;
 use chrono::{DateTime, Local};
 use iced::Element;
+use iced::Length::Shrink;
 use iced::Subscription;
 use iced::Task;
 use iced::time::Duration;
@@ -14,7 +15,7 @@ use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 
 use iced_webview::{Action, PageType, WebView};
-use sports::{Game, Games};
+use sports::{Game, Games, Sport};
 use std::collections::HashMap;
 
 type Engine = iced_webview::Cef;
@@ -63,9 +64,7 @@ pub fn main() -> iced::Result {
 
 #[derive(Debug, Clone)]
 enum PaneType {
-    MlbPane,
-    NflPane,
-    NbaPane,
+    SportsPane(Sport),
     Weather,
     Clock,
     News,
@@ -199,10 +198,10 @@ impl RustClock {
     fn view(state: &RustClock) -> Element<'_, Message> {
         pane_grid(&state.panes, |_panes, pane_state, _is_maximized| {
             let content: Element<'_, Message> = match pane_state {
-                PaneType::NbaPane => panes::render_nba_pane(&state.nba_scores, &state.nba_logos),
-                PaneType::NflPane => panes::render_nfl_pane(),
+                PaneType::SportsPane(Sport::NBA) => panes::render_sports_pane(Sport::NBA, &state.nba_scores, &state.nba_logos),
+                PaneType::SportsPane(Sport::NFL) => panes::render_nfl_pane(),
                 PaneType::News => panes::render_news_pane(&state.news, state.news_index),
-                PaneType::MlbPane => panes::render_mlb_pane(&state.mlb_scores, &state.mlb_logos),
+                PaneType::SportsPane(Sport::MLB) => panes::render_sports_pane(Sport::MLB, &state.mlb_scores, &state.mlb_logos),
                 PaneType::Clock => panes::render_clock_pane(),
                 PaneType::Weather => match state.weather_type {
                     WeatherType::WeatherStar => panes::render_weather_star_pane(state),
@@ -269,7 +268,7 @@ impl Default for RustClock {
                     b: Box::new(Configuration::Split {
                         axis: pane_grid::Axis::Vertical,
                         ratio: 0.25,
-                        a: Box::new(Configuration::Pane(PaneType::NbaPane)),
+                        a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NBA))),
                         b: Box::new(Configuration::Split {
                             axis: pane_grid::Axis::Vertical,
                             ratio: 0.66,
@@ -282,8 +281,8 @@ impl Default for RustClock {
                             b: Box::new(Configuration::Split {
                                 axis: pane_grid::Axis::Horizontal,
                                 ratio: 0.85, //fix later when all sports active TODO
-                                a: Box::new(Configuration::Pane(PaneType::MlbPane)),
-                                b: Box::new(Configuration::Pane(PaneType::NflPane)),
+                                a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::MLB))),
+                                b: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NFL))),
                             }),
                         }),
                     }),

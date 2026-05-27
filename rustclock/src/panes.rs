@@ -12,60 +12,6 @@ use crate::news::get_news_item;
 use crate::sports::Game;
 use iced::widget::image::Handle;
 
-pub fn render_nba_pane<'a>(
-    games: &'a [Game],
-    logos: &'a HashMap<String, Handle>,
-) -> Element<'a, Message> {
-    scrollable(column(games.iter().map(|game| {
-        let Some(team1_logo) = logos.get(&game.team1) else {
-            return text(format!("Error: Team 1 logo not found for {}", game.team1)).into();
-        };
-        let Some(team2_logo) = logos.get(&game.team2) else {
-            return text("Error: Team 2 logo not found").into();
-        };
-
-        container(
-            column![
-                row![
-                    image(team1_logo.clone()).width(30).height(30),
-                    text(&game.team1).size(20).width(Fill),
-                    image(team2_logo.clone()).width(30).height(30),
-                    text(&game.team2).size(20).width(Fill),
-                ],
-                row![
-                    text(&game.score1).size(20).width(Fill),
-                    text(&game.score2).size(20).width(Fill),
-                ],
-                text(format!("Period: {}", game.period)).size(14),
-            ]
-            .padding(10),
-        )
-        .padding(5)
-        .width(Fill)
-        .style(|_| container::Style {
-            background: Some(iced::Background::Color(iced::Color::from_rgb(
-                0.2, 0.2, 0.2,
-            ))),
-            border: Border {
-                width: 1.0,
-                color: iced::Color::WHITE,
-                radius: 0.0.into(),
-            },
-            text_color: Some(iced::Color::WHITE),
-            snap: true,
-            shadow: iced::Shadow {
-                color: iced::Color::BLACK,
-                offset: iced::Vector::new(0.0, 0.0),
-                blur_radius: 10.0,
-            },
-        })
-        .into()
-    })))
-    .direction(Direction::Vertical(Scrollbar::hidden()))
-    .width(50)
-    .into()
-}
-
 pub fn render_nfl_pane<'a>() -> Element<'a, Message> {
     text("NFL").into()
 }
@@ -79,7 +25,8 @@ pub fn render_news_pane<'a>(news: &'a Vec<String>, news_index: usize) -> Element
         .into()
 }
 
-pub fn render_mlb_pane<'a>(
+pub fn render_sports_pane<'a>(
+    sport: crate::sports::Sport,
     games: &'a [Game],
     logos: &'a HashMap<String, Handle>,
 ) -> Element<'a, Message> {
