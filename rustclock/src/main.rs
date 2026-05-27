@@ -198,10 +198,14 @@ impl RustClock {
     fn view(state: &RustClock) -> Element<'_, Message> {
         pane_grid(&state.panes, |_panes, pane_state, _is_maximized| {
             let content: Element<'_, Message> = match pane_state {
-                PaneType::SportsPane(Sport::NBA) => panes::render_sports_pane(Sport::NBA, &state.nba_scores, &state.nba_logos),
+                PaneType::SportsPane(Sport::NBA) => {
+                    panes::render_sports_pane(Sport::NBA, &state.nba_scores, &state.nba_logos)
+                }
                 PaneType::SportsPane(Sport::NFL) => panes::render_nfl_pane(),
                 PaneType::News => panes::render_news_pane(&state.news, state.news_index),
-                PaneType::SportsPane(Sport::MLB) => panes::render_sports_pane(Sport::MLB, &state.mlb_scores, &state.mlb_logos),
+                PaneType::SportsPane(Sport::MLB) => {
+                    panes::render_sports_pane(Sport::MLB, &state.mlb_scores, &state.mlb_logos)
+                }
                 PaneType::Clock => panes::render_clock_pane(),
                 PaneType::Weather => match state.weather_type {
                     WeatherType::WeatherStar => panes::render_weather_star_pane(state),
