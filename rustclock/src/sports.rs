@@ -47,6 +47,14 @@ impl Games {
             mlb: update_mlb(),
         }
     }
+
+    pub fn is_empty(&self, sport: Sport) -> bool {
+        match sport {
+            Sport::NBA => self.nba.is_empty(),
+            Sport::NFL => self.nfl.is_empty(),
+            Sport::MLB => self.mlb.is_empty(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -301,6 +309,14 @@ mod tests {
     fn test_get_mlb_scores() {
         let mlb_scores = update_mlb();
         assert!(!mlb_scores.is_empty());
+    }
+
+    #[test]
+    fn test_is_empty() {
+        let sports = Games::new();
+        //assert!(sports.is_empty(Sport::NBA));
+        assert!(sports.is_empty(Sport::NFL));
+        //assert!(sports.is_empty(Sport::MLB));
     }
 
     //  fn test_no_scores_for split() {
