@@ -64,6 +64,8 @@ pub fn main() -> iced::Result {
 #[derive(Debug, Clone)]
 enum PaneType {
     SportsPane(Sport),
+    SportsPaneLeft(Sport),
+    SportsPaneRight(Sport),
     Weather,
     Clock,
     News,
@@ -205,6 +207,36 @@ impl RustClock {
                 PaneType::SportsPane(Sport::MLB) => {
                     panes::render_sports_pane(Sport::MLB, &state.mlb_scores, &state.mlb_logos)
                 }
+                PaneType::SportsPaneLeft(sport) => {
+                    let full_games: &[Game] = match sport {
+                        Sport::NBA => &state.nba_scores,
+                        Sport::MLB => &state.mlb_scores,
+                        Sport::NFL => &[],
+                    };
+                    let mid = full_games.len() / 2;
+                    let (left, _) = full_games.split_at(mid);
+                    let logos = match sport {
+                        Sport::NBA => &state.nba_logos,
+                        Sport::MLB => &state.mlb_logos,
+                        Sport::NFL => &state.mlb_logos, // placeholder for NFL
+                    };
+                    panes::render_sports_pane(sport.clone(), left, logos)
+                }
+                PaneType::SportsPaneRight(sport) => {
+                    let full_games: &[Game] = match sport {
+                        Sport::NBA => &state.nba_scores,
+                        Sport::MLB => &state.mlb_scores,
+                        Sport::NFL => &[],
+                    };
+                    let mid = full_games.len() / 2;
+                    let (_, right) = full_games.split_at(mid);
+                    let logos = match sport {
+                        Sport::NBA => &state.nba_logos,
+                        Sport::MLB => &state.mlb_logos,
+                        Sport::NFL => &state.mlb_logos, // placeholder for NFL
+                    };
+                    panes::render_sports_pane(sport.clone(), right, logos)
+                }
                 PaneType::Clock => panes::render_clock_pane(),
                 PaneType::Weather => match state.weather_type {
                     WeatherType::WeatherStar => panes::render_weather_star_pane(state),
@@ -219,16 +251,57 @@ impl RustClock {
         .on_resize(10, Message::PaneResized)
         .into()
     }
+}
 
-    fn create_config(&self, sports: Games) -> Configuration<PaneType> {
-        let default_config = Configuration::Split {
+fn create_config(sports: &Games) -> Configuration<PaneType> {
+    let default_config = Configuration::Split {
+        axis: pane_grid::Axis::Horizontal,
+        ratio: 0.05,
+        a: Box::new(Configuration::Pane(PaneType::Clock)),
+        b: Box::new(Configuration::Split {
+            axis: pane_grid::Axis::Vertical,
+            ratio: 0.25,
+            a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NBA))),
+            b: Box::new(Configuration::Split {
+                axis: pane_grid::Axis::Vertical,
+                ratio: 0.66,
+                a: Box::new(Configuration::Split {
+                    axis: pane_grid::Axis::Horizontal,
+                    ratio: 0.85,
+                    a: Box::new(Configuration::Pane(PaneType::Weather)),
+                    b: Box::new(Configuration::Pane(PaneType::News)),
+                }),
+                b: Box::new(Configuration::Split {
+                    axis: pane_grid::Axis::Horizontal,
+                    ratio: 0.85, //fix later when all sports active TODO
+                    a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::MLB))),
+                    b: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NFL))),
+                }),
+            }),
+        }),
+    };
+
+    let mut active_sports = Vec::new();
+    if sports.is_active(Sport::NBA) {
+        active_sports.push(Sport::NBA);
+    }
+    if sports.is_active(Sport::NFL) {
+        active_sports.push(Sport::NFL);
+    }
+    if sports.is_active(Sport::MLB) {
+        active_sports.push(Sport::MLB);
+    }
+
+    if active_sports.len() == 1 {
+        let sport = active_sports[0].clone();
+        Configuration::Split {
             axis: pane_grid::Axis::Horizontal,
             ratio: 0.05,
             a: Box::new(Configuration::Pane(PaneType::Clock)),
             b: Box::new(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,
                 ratio: 0.25,
-                a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NBA))),
+                a: Box::new(Configuration::Pane(PaneType::SportsPaneLeft(sport.clone()))),
                 b: Box::new(Configuration::Split {
                     axis: pane_grid::Axis::Vertical,
                     ratio: 0.66,
@@ -240,55 +313,17 @@ impl RustClock {
                     }),
                     b: Box::new(Configuration::Split {
                         axis: pane_grid::Axis::Horizontal,
-                        ratio: 0.85, //fix later when all sports active TODO
-                        a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::MLB))),
+                        ratio: 0.85,
+                        a: Box::new(Configuration::Pane(PaneType::SportsPaneRight(
+                            sport.clone(),
+                        ))),
                         b: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NFL))),
                     }),
                 }),
             }),
-        };
-
-        let active_sports = Vec::new();
-        match sports {
-            sports if sports.is_active(Sport::NBA) => active_sports.push(Sport::NBA),
-            sports if sports.is_active(Sport::NFL) => active_sports.push(Sport::NFL),
-            sports if sports.is_active(Sport::MLB) => active_sports.push(Sport::MLB),
-            _ => {}
         }
-
-        if active_sports.len() == 1 {
-            let sports = sports.splits(active_sports[0]);
-            let new_config = Configuration::Split {
-                axis: pane_grid::Axis::Horizontal,
-                ratio: 0.05,
-                a: Box::new(Configuration::Pane(PaneType::Clock)),
-                b: Box::new(Configuration::Split {
-                    axis: pane_grid::Axis::Vertical,
-                    ratio: 0.25,
-                    a: Box::new(Configuration::Pane(PaneType::SportsPane(sports.0))),
-                    b: Box::new(Configuration::Split {
-                        axis: pane_grid::Axis::Vertical,
-                        ratio: 0.66,
-                        a: Box::new(Configuration::Split {
-                            axis: pane_grid::Axis::Horizontal,
-                            ratio: 0.85,
-                            a: Box::new(Configuration::Pane(PaneType::Weather)),
-                            b: Box::new(Configuration::Pane(PaneType::News)),
-                        }),
-                        b: Box::new(Configuration::Split {
-                            axis: pane_grid::Axis::Horizontal,
-                            ratio: 0.85, //fix later when all sports active TODO
-                            a: Box::new(Configuration::Pane(PaneType::SportsPane(sports[1]))),
-                            b: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NFL))),
-                        }),
-                    }),
-                }),
-            };
-
-            new_config
-        } else {
-            default_config
-        }
+    } else {
+        default_config
     }
 }
 
@@ -317,17 +352,7 @@ impl Default for RustClock {
         };
 
         let games_list = Games::new();
-        let mut sports_panes: Vec<PaneType> = Vec::new();
-
-        if games_list.is_active(Sport::NBA) {
-            sports_panes.push(PaneType::SportsPane(Sport::NBA));
-        }
-        if games_list.is_active(Sport::NFL) {
-            sports_panes.push(PaneType::SportsPane(Sport::NFL));
-        }
-        if games_list.is_active(Sport::MLB) {
-            sports_panes.push(PaneType::SportsPane(Sport::MLB));
-        }
+        let config = create_config(&games_list);
 
         RustClock {
             current_time: Local::now(),
@@ -345,11 +370,7 @@ impl Default for RustClock {
             weather_type,
             webview,
             ready: false,
-            panes: {
-                let config = create_pane_configuration();
-
-                pane_grid::State::with_configuration(config)
-            },
+            panes: { pane_grid::State::with_configuration(config) },
         }
     }
 }

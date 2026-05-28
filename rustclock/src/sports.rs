@@ -27,19 +27,6 @@ impl Games {
         }
     }
 
-    // split vec of games in half and return two games vectors
-    pub fn splits(self, sport: Sport) -> (Vec<Game>, Vec<Game>) {
-        let games = match sport {
-            Sport::NBA => self.nba,
-            Sport::NFL => self.nfl,
-            Sport::MLB => self.mlb,
-        };
-
-        let mid = games.len() / 2;
-        let (left, right) = games.split_at(mid);
-        (left.to_vec(), right.to_vec())
-    }
-
     pub fn update_games(self) -> Games {
         Games {
             nba: update_nba(),
