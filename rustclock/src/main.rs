@@ -311,14 +311,9 @@ fn create_config(sports: &Games) -> Configuration<PaneType> {
                         a: Box::new(Configuration::Pane(PaneType::Weather)),
                         b: Box::new(Configuration::Pane(PaneType::News)),
                     }),
-                    b: Box::new(Configuration::Split {
-                        axis: pane_grid::Axis::Horizontal,
-                        ratio: 0.85,
-                        a: Box::new(Configuration::Pane(PaneType::SportsPaneRight(
-                            sport.clone(),
-                        ))),
-                        b: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NFL))),
-                    }),
+                    b: Box::new(Configuration::Pane(PaneType::SportsPaneRight(
+                        sport.clone(),
+                    ))),
                 }),
             }),
         }
