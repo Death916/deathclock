@@ -6,18 +6,50 @@ let
 
   # System libraries needed for CEF/Graphics
   cefLibs = with pkgs; [
-    wayland libxkbcommon mesa libGL libglvnd glib vulkan-loader
-    nss nspr atk dbus cups libdrm libgbm libxshmfence udev
-    expat cairo pango systemd alsa-lib pciutils
-    libX11 libXcomposite libXdamage libXext
-    libXfixes libXrandr libXrender libxtst libxcb
+    wayland
+    libxkbcommon
+    mesa
+    libGL
+    libglvnd
+    glib
+    vulkan-loader
+    nss
+    nspr
+    atk
+    dbus
+    cups
+    libdrm
+    libgbm
+    libxshmfence
+    udev
+    expat
+    cairo
+    pango
+    systemd
+    alsa-lib
+    pciutils
+    libX11
+    libXcomposite
+    libXdamage
+    libXext
+    libXfixes
+    libXrandr
+    libXrender
+    libxtst
+    libxcb
   ];
 in
 {
   # 1. RUST TOOLCHAIN
   languages.rust = {
     enable = true;
-    components = [ "rustc" "cargo" "rust-analyzer" "rustfmt" "clippy" ];
+    components = [
+      "rustc"
+      "cargo"
+      "rust-analyzer"
+      "rustfmt"
+      "clippy"
+    ];
   };
 
   # 2. CROSS-COMPILATION PROFILE
@@ -26,8 +58,7 @@ in
 
     env = {
       CARGO_BUILD_TARGET = "aarch64-unknown-linux-gnu";
-      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
-        "${crossPkgs.stdenv.cc}/bin/${crossPkgs.stdenv.cc.targetPrefix}cc";
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER = "${crossPkgs.stdenv.cc}/bin/${crossPkgs.stdenv.cc.targetPrefix}cc";
       PKG_CONFIG_ALLOW_CROSS = "1";
     };
 
@@ -35,12 +66,15 @@ in
   };
 
   # 3. CEF SYSTEM ENVIRONMENT
-  packages = with pkgs; [
-    pkg-config
-    openssl
-    fontconfig
-    freetype
-  ] ++ cefLibs;
+  packages =
+    with pkgs;
+    [
+      pkg-config
+      openssl
+      fontconfig
+      freetype
+    ]
+    ++ cefLibs;
 
   env = {
     # Automatically build the LD_LIBRARY_PATH from the list above

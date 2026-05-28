@@ -28,7 +28,7 @@ impl Games {
     }
 
     // split vec of games in half and return two games vectors
-    pub fn split(self, sport: Sport) -> (Vec<Game>, Vec<Game>) {
+    pub fn splits(self, sport: Sport) -> (Vec<Game>, Vec<Game>) {
         let games = match sport {
             Sport::NBA => self.nba,
             Sport::NFL => self.nfl,
@@ -48,11 +48,11 @@ impl Games {
         }
     }
 
-    pub fn is_empty(&self, sport: Sport) -> bool {
+    pub fn is_active(&self, sport: Sport) -> bool {
         match sport {
-            Sport::NBA => self.nba.is_empty(),
-            Sport::NFL => self.nfl.is_empty(),
-            Sport::MLB => self.mlb.is_empty(),
+            Sport::NBA => !self.nba.is_empty(),
+            Sport::NFL => !self.nfl.is_empty(),
+            Sport::MLB => !self.mlb.is_empty(),
         }
     }
 }
@@ -315,7 +315,7 @@ mod tests {
     fn test_is_empty() {
         let sports = Games::new();
         //assert!(sports.is_empty(Sport::NBA));
-        assert!(sports.is_empty(Sport::NFL));
+        assert!(sports.is_active(Sport::NFL));
         //assert!(sports.is_empty(Sport::MLB));
     }
 

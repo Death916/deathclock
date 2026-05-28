@@ -6,7 +6,6 @@ mod sports;
 mod weather;
 use chrono::{DateTime, Local};
 use iced::Element;
-use iced::Length::Shrink;
 use iced::Subscription;
 use iced::Task;
 use iced::time::Duration;
@@ -220,6 +219,77 @@ impl RustClock {
         .on_resize(10, Message::PaneResized)
         .into()
     }
+
+    fn create_config(&self, sports: Games) -> Configuration<PaneType> {
+        let default_config = Configuration::Split {
+            axis: pane_grid::Axis::Horizontal,
+            ratio: 0.05,
+            a: Box::new(Configuration::Pane(PaneType::Clock)),
+            b: Box::new(Configuration::Split {
+                axis: pane_grid::Axis::Vertical,
+                ratio: 0.25,
+                a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NBA))),
+                b: Box::new(Configuration::Split {
+                    axis: pane_grid::Axis::Vertical,
+                    ratio: 0.66,
+                    a: Box::new(Configuration::Split {
+                        axis: pane_grid::Axis::Horizontal,
+                        ratio: 0.85,
+                        a: Box::new(Configuration::Pane(PaneType::Weather)),
+                        b: Box::new(Configuration::Pane(PaneType::News)),
+                    }),
+                    b: Box::new(Configuration::Split {
+                        axis: pane_grid::Axis::Horizontal,
+                        ratio: 0.85, //fix later when all sports active TODO
+                        a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::MLB))),
+                        b: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NFL))),
+                    }),
+                }),
+            }),
+        };
+
+        let active_sports = Vec::new();
+        match sports {
+            sports if sports.is_active(Sport::NBA) => active_sports.push(Sport::NBA),
+            sports if sports.is_active(Sport::NFL) => active_sports.push(Sport::NFL),
+            sports if sports.is_active(Sport::MLB) => active_sports.push(Sport::MLB),
+            _ => {}
+        }
+
+        if active_sports.len() == 1 {
+            let sports = sports.splits(active_sports[0]);
+            let new_config = Configuration::Split {
+                axis: pane_grid::Axis::Horizontal,
+                ratio: 0.05,
+                a: Box::new(Configuration::Pane(PaneType::Clock)),
+                b: Box::new(Configuration::Split {
+                    axis: pane_grid::Axis::Vertical,
+                    ratio: 0.25,
+                    a: Box::new(Configuration::Pane(PaneType::SportsPane(sports.0))),
+                    b: Box::new(Configuration::Split {
+                        axis: pane_grid::Axis::Vertical,
+                        ratio: 0.66,
+                        a: Box::new(Configuration::Split {
+                            axis: pane_grid::Axis::Horizontal,
+                            ratio: 0.85,
+                            a: Box::new(Configuration::Pane(PaneType::Weather)),
+                            b: Box::new(Configuration::Pane(PaneType::News)),
+                        }),
+                        b: Box::new(Configuration::Split {
+                            axis: pane_grid::Axis::Horizontal,
+                            ratio: 0.85, //fix later when all sports active TODO
+                            a: Box::new(Configuration::Pane(PaneType::SportsPane(sports[1]))),
+                            b: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NFL))),
+                        }),
+                    }),
+                }),
+            };
+
+            new_config
+        } else {
+            default_config
+        }
+    }
 }
 
 impl Default for RustClock {
@@ -247,6 +317,17 @@ impl Default for RustClock {
         };
 
         let games_list = Games::new();
+        let mut sports_panes: Vec<PaneType> = Vec::new();
+
+        if games_list.is_active(Sport::NBA) {
+            sports_panes.push(PaneType::SportsPane(Sport::NBA));
+        }
+        if games_list.is_active(Sport::NFL) {
+            sports_panes.push(PaneType::SportsPane(Sport::NFL));
+        }
+        if games_list.is_active(Sport::MLB) {
+            sports_panes.push(PaneType::SportsPane(Sport::MLB));
+        }
 
         RustClock {
             current_time: Local::now(),
@@ -265,32 +346,7 @@ impl Default for RustClock {
             webview,
             ready: false,
             panes: {
-                let config = Configuration::Split {
-                    axis: pane_grid::Axis::Horizontal,
-                    ratio: 0.05,
-                    a: Box::new(Configuration::Pane(PaneType::Clock)),
-                    b: Box::new(Configuration::Split {
-                        axis: pane_grid::Axis::Vertical,
-                        ratio: 0.25,
-                        a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NBA))),
-                        b: Box::new(Configuration::Split {
-                            axis: pane_grid::Axis::Vertical,
-                            ratio: 0.66,
-                            a: Box::new(Configuration::Split {
-                                axis: pane_grid::Axis::Horizontal,
-                                ratio: 0.85,
-                                a: Box::new(Configuration::Pane(PaneType::Weather)),
-                                b: Box::new(Configuration::Pane(PaneType::News)),
-                            }),
-                            b: Box::new(Configuration::Split {
-                                axis: pane_grid::Axis::Horizontal,
-                                ratio: 0.85, //fix later when all sports active TODO
-                                a: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::MLB))),
-                                b: Box::new(Configuration::Pane(PaneType::SportsPane(Sport::NFL))),
-                            }),
-                        }),
-                    }),
-                };
+                let config = create_pane_configuration();
 
                 pane_grid::State::with_configuration(config)
             },
