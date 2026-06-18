@@ -27,6 +27,7 @@ const WEATHER_UPDATE_TIME_MINS: u64 = 15; // increase when done testing
 const NEWS_UPDATE_TIME_MINS: u64 = 15;
 const NEWS_ROTATE_TIME_SECS: u64 = 15;
 const WEATHER_TYPE: WeatherType = WeatherType::WeatherStar;
+const NBA_IN_SEASON: bool = false;
 
 pub fn main() -> iced::Result {
     if iced_webview::cef_subprocess_check() {

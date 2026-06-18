@@ -4,6 +4,8 @@ use std::env;
 use std::fs::{self, File};
 use std::path::PathBuf;
 
+use crate::NBA_IN_SEASON;
+
 #[derive(Debug, Clone)]
 pub enum Sport {
     NBA,
@@ -21,7 +23,7 @@ pub struct Games {
 impl Games {
     pub fn new() -> Self {
         Games {
-            nba: update_nba(),
+            nba: { if NBA_IN_SEASON { update_nba() } else { Vec::new() } },
             nfl: Vec::new(),
             mlb: update_mlb(),
         }
@@ -29,7 +31,7 @@ impl Games {
 
     pub fn update_games(self) -> Games {
         Games {
-            nba: update_nba(),
+            nba: { if NBA_IN_SEASON { update_nba() } else { self.nba } },
             nfl: Vec::new(),
             mlb: update_mlb(),
         }
@@ -139,7 +141,7 @@ pub fn update_nba() -> Vec<Game> {
             .unwrap()
             .into_body()
             .read_to_vec()
-            .unwrap();
+            .unwrap_or_default();
 
     let json: serde_json::Value = serde_json::from_slice(&nba_games).unwrap();
     let games = json["scoreboard"]["games"].as_array().unwrap();
