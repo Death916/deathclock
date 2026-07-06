@@ -131,18 +131,29 @@ pub fn update_mlb() -> Vec<Game> {
 }
 
 pub fn update_nba() -> Vec<Game> {
-    let nba_games =
-        ureq::get("https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json")
-            .header("Referer", "https://www.nba.com/")
-            .header("User-Agent", "Chrome/123.0.0.0")
-            .call()
-            .unwrap()
-            .into_body()
-            .read_to_vec()
-            .unwrap();
+    let response = match ureq::get("https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json")
+        .header("Referer", "https://www.nba.com/")
+        .header("User-Agent", "Chrome/123.0.0.0")
+        .call()
+    {
+        Ok(res) => res,
+        Err(_) => return Vec::new(),
+    };
 
-    let json: serde_json::Value = serde_json::from_slice(&nba_games).unwrap();
-    let games = json["scoreboard"]["games"].as_array().unwrap();
+    let nba_games = match response.into_body().read_to_vec() {
+        Ok(bytes) => bytes,
+        Err(_) => return Vec::new(),
+    };
+
+    let json: serde_json::Value = match serde_json::from_slice(&nba_games) {
+        Ok(val) => val,
+        Err(_) => return Vec::new(),
+    };
+
+    let games = match json["scoreboard"]["games"].as_array() {
+        Some(arr) => arr,
+        None => return Vec::new(),
+    };
     let mut updated_games: Vec<Game> = Vec::new();
 
     for game in games {
