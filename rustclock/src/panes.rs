@@ -49,7 +49,11 @@ pub fn render_sports_pane<'a>(
                     text(&game.score1).size(20).width(Fill),
                     text(&game.score2).size(20).width(Fill),
                 ],
-                text(format!("Period: {}", game.period)).size(14),
+                match game.sport {
+                    crate::sports::Sport::MLB => text(format!("Inning: {}", game.period)).size(14),
+                    crate::sports::Sport::NBA => text(format!("Period: {}", game.period)).size(14),
+                    crate::sports::Sport::NFL => text(format!("Quarter: {}", game.period)).size(14),
+                },
             ]
             .padding(10),
         )

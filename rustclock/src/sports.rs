@@ -83,47 +83,78 @@ impl Game {
 pub fn update_mlb() -> Vec<Game> {
     let date = chrono::Local::now().format("%Y-%m-%d").to_string();
     let mlb_url = format!(
-        "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={}",
+        "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date={}&hydrate=linescore",
         date
     );
-    let mlb_games = ureq::get(&mlb_url)
+    let response = match ureq::get(&mlb_url)
         .header("User-Agent", "deathclock-app/1.0")
         .call()
-        .unwrap()
-        .into_body()
-        .read_to_vec()
-        .unwrap();
+    {
+        Ok(res) => res,
+        Err(_) => return Vec::new(),
+    };
 
-    let mlb_json: serde_json::Value = serde_json::from_slice(&mlb_games).unwrap();
-    let games = mlb_json["dates"][0]["games"].as_array().unwrap();
+    let mlb_games = match response.into_body().read_to_vec() {
+        Ok(bytes) => bytes,
+        Err(_) => return Vec::new(),
+    };
+
+    let mlb_json: serde_json::Value = match serde_json::from_slice(&mlb_games) {
+        Ok(val) => val,
+        Err(_) => return Vec::new(),
+    };
+
+    let games = match mlb_json["dates"][0]["games"].as_array() {
+        Some(arr) => arr,
+        None => return Vec::new(),
+    };
 
     let mut mlb_games_vec = Vec::new();
 
     for game in games {
-        let home_team = game["teams"]["away"]["team"]["name"].as_str().unwrap();
-        let away_team = game["teams"]["home"]["team"]["name"].as_str().unwrap();
-        let home_score = game["teams"]["away"]["score"].as_str().unwrap_or("0");
-        let away_score = game["teams"]["home"]["score"].as_str().unwrap_or("0");
-        let period = game["status"]["period"]
-            .as_str()
-            .unwrap_or_default()
-            .parse::<u8>()
-            .unwrap_or_default();
+        let home_team = match game["teams"]["away"]["team"]["name"].as_str() {
+            Some(name) => name,
+            None => continue,
+        };
+        let away_team = match game["teams"]["home"]["team"]["name"].as_str() {
+            Some(name) => name,
+            None => continue,
+        };
+
+        let home_score = match &game["teams"]["away"]["score"] {
+            serde_json::Value::Number(n) => n.to_string(),
+            serde_json::Value::String(s) => s.clone(),
+            _ => "0".to_string(),
+        };
+        let away_score = match &game["teams"]["home"]["score"] {
+            serde_json::Value::Number(n) => n.to_string(),
+            serde_json::Value::String(s) => s.clone(),
+            _ => "0".to_string(),
+        };
+
+        let period = game["linescore"]["currentInning"]
+            .as_u64()
+            .or_else(|| {
+                game["linescore"]["currentInning"]
+                    .as_str()
+                    .and_then(|s| s.parse::<u64>().ok())
+            })
+            .unwrap_or(0) as u8;
 
         let mut mlb_game_struct = Game::new(
             Sport::MLB,
             home_team,
             away_team,
-            home_score,
-            away_score,
+            &home_score,
+            &away_score,
             period,
         );
-        mlb_game_struct.update(home_score, away_score, period);
+        mlb_game_struct.update(&home_score, &away_score, period);
         mlb_games_vec.push(mlb_game_struct);
         dbg!(home_team);
         dbg!(away_team);
-        dbg!(home_score);
-        dbg!(away_score);
+        dbg!(&home_score);
+        dbg!(&away_score);
         dbg!(period);
     }
 
