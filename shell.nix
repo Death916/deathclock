@@ -1,5 +1,6 @@
 {
   cross ? false,
+  system ? builtins.currentSystem,
 }:
 let
   nixconfig = builtins.getFlake "github:death916/nixconfig";
@@ -13,9 +14,9 @@ let
         };
       }
     else
-      nixconfig.inputs.nixpkgs.legacyPackages.x86_64-linux;
+      nixconfig.inputs.nixpkgs.legacyPackages.${system};
 
-  buildPkgs = nixconfig.inputs.nixpkgs.legacyPackages.x86_64-linux;
+  buildPkgs = nixconfig.inputs.nixpkgs.legacyPackages.${system};
 
   unstable =
     if cross then
@@ -26,9 +27,9 @@ let
         };
       }
     else
-      nixconfig.inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
+      nixconfig.inputs.nixpkgs-unstable.legacyPackages.${system};
 
-  rustTarget = if cross then "aarch64-unknown-linux-gnu" else "x86_64-unknown-linux-gnu";
+  rustTarget = if cross then "aarch64-unknown-linux-gnu" else if system == "aarch64-linux" then "aarch64-unknown-linux-gnu" else "x86_64-unknown-linux-gnu";
 in
 pkgs.mkShell {
   nativeBuildInputs = with buildPkgs; [
